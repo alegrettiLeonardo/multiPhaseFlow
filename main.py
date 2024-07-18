@@ -400,10 +400,10 @@ def simulate_pipeline(U, F1, tol, n, nCg, nCl, nP_l0, nrho_l0, nPs, omega_c, ome
 def plot_results(time_values, U_values, label):
     plt.figure(figsize=(10, 6))
     for i in range(len(time_values)):
-        plt.plot(U_values[i], label=f'Time {time_values[i]:.2f}')
-    plt.xlabel('Spatial Position')
+        plt.plot(U_values[i], label=f"Time {time_values[i]:.2f}")
+    plt.xlabel("Spatial Position")
     plt.ylabel(label)
-    plt.title(f'{label} over Time')
+    plt.title(f"{label} over Time")
     plt.legend()
     plt.show()
     
@@ -487,25 +487,25 @@ U_final, time_values, U1_values, U2_values, U3_values = simulate_pipeline(U, F1,
 # Plotando os resultados
 plt.figure(1)
 plt.plot(np.linspace(0, S, n), U_final[:, 0])
-plt.xlabel('Comprimento do tubo')
-plt.ylabel('Variável conservativa U1')
-plt.title('Distribuição de U1 ao longo do tubo')
+plt.xlabel("Comprimento do tubo")
+plt.ylabel("Variável conservativa U1")
+plt.title("Distribuição de U1 ao longo do tubo")
 plt.grid(True)
 plt.show()
     
 plt.figure(2)
 plt.plot(np.linspace(0, S, n), U_final[:, 1])
-plt.xlabel('Comprimento do tubo')
-plt.ylabel('Variável conservativa U2')
-plt.title('Distribuição de U2 ao longo do tubo')
+plt.xlabel("Comprimento do tubo")
+plt.ylabel("Variável conservativa U2")
+plt.title("Distribuição de U2 ao longo do tubo")
 plt.grid(True)
 plt.show()
     
 plt.figure(3)
 plt.plot(np.linspace(0, S, n), U_final[:, 2])
-plt.xlabel('Comprimento do tubo')
-plt.ylabel('Variável conservativa U3')
-plt.title('Distribuição de U3 ao longo do tubo')
+plt.xlabel("Comprimento do tubo")
+plt.ylabel("Variável conservativa U3")
+plt.title("Distribuição de U3 ao longo do tubo")
 plt.grid(True)
 plt.show()
 
