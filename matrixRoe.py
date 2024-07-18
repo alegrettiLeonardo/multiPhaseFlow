@@ -67,8 +67,8 @@ def calculate_roe_matrix(alpha, rhol, rhog, ul, ug, Cl, Cg, theta, DH, AREA, EPS
         Roe_matrix += weights[i] * Jacobians[i]
 
     # Verificar se a matriz contém valores finitos e não NaNs
-    if not np.all(np.isfinite(Roe_matrix)):
-        Roe_matrix = np.zeros_like(Roe_matrix)  # Substituir por uma matriz de zeros se houver valores não finitos
+    # if not np.all(np.isfinite(Roe_matrix)):
+    #     Roe_matrix = np.zeros_like(Roe_matrix)  # Substituir por uma matriz de zeros se houver valores não finitos
 
     return Roe_matrix
 

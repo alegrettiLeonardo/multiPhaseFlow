@@ -452,7 +452,7 @@ nrhol0 = rhol0 / omega_rho
     
 # Geração dos vetores de velocidade superficial
 vjl, vjg = gerar_vetores_velocidade_superficial(n)
-jl = 0.005
+jl = 0.009
 jg = 0.001
 omega_u = np.maximum(jl, jg)
 nmul = rhol0 * jl * AREA

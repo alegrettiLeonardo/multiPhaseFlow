@@ -72,7 +72,7 @@ def fun_dpds(s, p, mul, mug, Lp, Lr, CA, beta, DH, AREA, EPS, G, Cl, Cg, rho_l0,
     auxb = -PIF * rhom * fm * jt * abs(jt) / 2.0
 
     dpds = (auxa + auxb) / auxc
-    print(f"s: {s}, theta: {theta}, p: {p}, dpds: {dpds}")
+    # print(f"s: {s}, theta: {theta}, p: {p}, dpds: {dpds}")
     return dpds
 
 
@@ -100,16 +100,12 @@ def EstadoEstacionario_ndim_simp(N, mul, mug, Ps, Lp, Lr, CA, beta, DH, AREA, EP
     tspan = np.linspace(0, (Lp + Lr) / Lr, N)
 
     # Defina as opções de controle do integrador solve_ivp
-    # def fun_dpds_wrapper(s, p):
-    #     dpds = fun_dpds(s, p, mul, mug, Lp, Lr, CA, beta, DH, AREA, EPS, G, Cl, Cg, rho_l0, P_l0, MUL, MUG, sigma, w_p, w_u, w_rho, tol)
-    #     print(f"s: {s}, p: {p}, dpds: {dpds}")
-    #     return dpds
     options = {
-        'method': 'DOP853',#'BDF', 'DOP853',#'LSODA',
+        'method': 'DOP853', # Método de integração (pode ser 'BDF', 'DOP853', 'LSODA')
         'rtol': 100 * tol,
         'atol': tol,
         'max_step': ds,
-        'first_step': ds / 1000.0,  # Ajuste o valor inicial do passo conforme necessário
+        'first_step': ds / 10000.0,  # Ajuste o valor inicial do passo conforme necessário
     }
         
     # Integração da pressão do topo do riser até o início do oleoduto
@@ -122,7 +118,7 @@ def EstadoEstacionario_ndim_simp(N, mul, mug, Ps, Lp, Lr, CA, beta, DH, AREA, EP
     # Inverter os vetores de saída para corresponder ao MATLAB
     vns = sol.t[::-1]
     vnp = sol.y[0][::-1]
-
+    
     # Determinar densidades do gás e do líquido, velocidades superficiais, fração de vazio e velocidades do líquido e gás
     nrhogv = np.zeros(N)
     nrholv = np.zeros(N)
@@ -137,6 +133,7 @@ def EstadoEstacionario_ndim_simp(N, mul, mug, Ps, Lp, Lr, CA, beta, DH, AREA, EP
         njl = mul / nrholv[i]
         theta = fun_or_geo(vns[i] * Lr, Lp, beta, CA)
         thetav[i] = theta
+        print(f"s: {vns[i]}, p: {vnp[i]}")
         if theta <= 0:
             alphav[i] = voidFraction.FracaoVazio_comp(njl, njg, nrhogv[i], nrholv[i], -theta, DH, AREA, EPS, G, MUL, MUG, w_u, w_rho, tol)
         else:
