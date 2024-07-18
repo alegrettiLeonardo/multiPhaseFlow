@@ -105,7 +105,7 @@ def EstadoEstacionario_ndim_simp(N, mul, mug, Ps, Lp, Lr, CA, beta, DH, AREA, EP
     #     print(f"s: {s}, p: {p}, dpds: {dpds}")
     #     return dpds
     options = {
-        'method': 'BDF', #'DOP853',#'LSODA',
+        'method': 'DOP853',#'BDF', 'DOP853',#'LSODA',
         'rtol': 100 * tol,
         'atol': tol,
         'max_step': ds,

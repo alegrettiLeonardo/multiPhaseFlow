@@ -175,94 +175,99 @@ def find_one_ug_from_uj_dfr(ugmin, ugmax, u1, u2, u3, rhol, rhog, ALPHA, theta, 
             return ug
         else:
             return 0
-
-
+        
+        
 def find_all_ug_from_uj_dfr(u1, u2, u3, rhol, rhog, ALPHA, theta, D, AREA, EPS, G, MUL, MUG, sigma, w_u, w_rho, tol, maxit):
-    """
-    Function to find all values of ug that satisfy the drift-flux relationship with the parameters Cd and Ud given by the
-    Swananda relationship.
+   """
+   Função que acha todos os valores de ug que satisfazem a relação de deriva
+   com os parâmetros Cd e Ud dados pela relação de Swananda.
 
-    :param u1: Conservative variable 1
-    :param u2: Conservative variable 2
-    :param u3: Conservative variable 3
-    :param rhol: Dimensionless density of liquid
-    :param rhog: Dimensionless density of gas
-    :param ALPHA: Void fraction at a point in the pipe
-    :param theta: Angle of inclination of the pipe
-    :param D: Diameter of the pipe
-    :param AREA: Cross-sectional area of the pipeline and riser
-    :param EPS: Roughness of the pipeline tube
-    :param G: Acceleration due to gravity
-    :param MUL: Dynamic viscosity of the liquid
-    :param MUG: Dynamic viscosity of the gas
-    :param sigma: Surface tension between liquid and gas
-    :param w_u: Velocity scale
-    :param w_rho: Density scale
-    :param tol: Numerical tolerance
-    :param maxit: Maximum number of iterations
+   Parâmetros:
+   u1, u2, u3: Variáveis conservativas
+   rhol: Densidade adimensional do líquido
+   rhog: Densidade adimensional do gás
+   ALPHA: Fração de vazio em um ponto do pipe
+   theta: Ângulo de inclinação do pipe
+   D: Diâmetro da tubulação
+   AREA: Área seccional da tubulação do pipeline e riser
+   EPS: Rugosidade do tubo do pipeline
+   G: Aceleração da gravidade
+   MUL: Viscosidade dinâmica do líquido
+   MUG: Viscosidade dinâmica do gás
+   sigma: Tensão superficial líquido-gás
+   w_u: Escala de velocidade
+   w_rho: Escala de densidade
+   tol: Tolerância numérica
+   maxit: Número máximo de iterações
 
-    :return: ugv - List of all values of ug that satisfy the drift-flux relationship
-    :return: count - Number of values of ug found
-    """
+   Retorna:
+   ugv: Lista de valores de ug que satisfazem a relação de deriva
+   count: Contagem de valores encontrados
+   """
+   # Avaliar a velocidade máxima do gás
+   ugmax = u3 / u2
 
-    # Evaluate the maximum gas velocity
-    ugmax = u3 / u2
+   # Avaliar o número de intervalos para [0, ugmax]
+   N = round(np.log10(ugmax))
+   aux = 10 ** N
 
-    # Evaluate the number of intervals for [0, ugmax]
-    N = round(ugmax)
-    aux = 10**N
+   if aux > ugmax:
+       N = 10 * aux
+   else:
+       N = 10 ** (N + 2)
 
-    if aux > ugmax:
-        N = 10 * aux
-    else:
-        N = 10**(N + 2)
+   count = 0
+   counti = 0
+   dug = ugmax / (N - 1)
+   ugminv = []
+   ugmaxv = []
+   ugv = []
 
-    count = 0
-    counti = 0
-    dug = ugmax / (N - 1)
+   for i in range(2, N + 1):
+       if i == 2:
+           ug1 = dug * (i - 2)
+           ul1 = u3 / u1 - (u2 / u1) * ug1
+           fv1 = closureLaw.drift_flux_swananda(ul1, ug1, rhol, rhog, ALPHA, theta, D, AREA, EPS, G, MUL, MUG, sigma, w_u, w_rho, tol)
+           ug2 = dug * (i - 1)
+           ul2 = u3 / u1 - (u2 / u1) * ug2
+           fv2 = closureLaw.drift_flux_swananda(ul2, ug2, rhol, rhog, ALPHA, theta, D, AREA, EPS, G, MUL, MUG, sigma, w_u, w_rho, tol)
+       else:
+           ug2 = dug * (i - 1)
+           ul2 = u3 / u1 - (u2 / u1) * ug2
+           fv2 = closureLaw.drift_flux_swananda(ul2, ug2, rhol, rhog, ALPHA, theta, D, AREA, EPS, G, MUL, MUG, sigma, w_u, w_rho, tol)
 
-    for i in range(2, N + 1):
-        if i == 2:
-            ug1 = dug * (i - 2)
-            ul1 = u3 / u1 - (u2 / u1) * ug1
-            fv1 = closureLaw.drift_flux_swananda(ul1, ug1, rhol, rhog, ALPHA, theta, D, AREA, EPS, G, MUL, MUG, sigma, w_u, w_rho, tol)
+       if fv1 * fv2 < 0:
+           counti += 1
+           ugminv.append(ug1)
+           ugmaxv.append(ug2)
+       elif fv1 * fv2 == 0:
+           count += 1
+           if abs(fv1) == 0:
+               ugv.append(ug1)
+           elif abs(fv2) == 0:
+               ugv.append(ug2)
 
-            ug2 = dug * (i - 1)
-            ul2 = u3 / u1 - (u2 / u1) * ug2
-            fv2 = closureLaw.drift_flux_swananda(ul2, ug2, rhol, rhog, ALPHA, theta, D, AREA, EPS, G, MUL, MUG, sigma, w_u, w_rho, tol)
-        else:
-            ug2 = dug * (i - 1)
-            ul2 = u3 / u1 - (u2 / u1) * ug2
-            fv2 = closureLaw.drift_flux_swananda(ul2, ug2, rhol, rhog, ALPHA, theta, D, AREA, EPS, G, MUL, MUG, sigma, w_u, w_rho, tol)
+       ug1 = ug2
+       fv1 = fv2
 
-        if fv1 * fv2 < 0:
-            counti += 1
-            ugminv[counti - 1] = ug1
-            ugmaxv[counti - 1] = ug2
-        elif fv1 * fv2 == 0:
-            count += 1
-            if abs(fv1) == 0:
-                ugv[count - 1] = ug1
-            elif abs(fv2) == 0:
-                ugv[count - 1] = ug2
+   if counti == 0:
+       print('Nenhum intervalo contendo raiz da relação de deriva foi encontrado')
+       if count > 0:
+           print('Raízes da relação de deriva foram encontradas')
+           print(count)
+   else:
+       for i in range(counti):
+           ug = find_one_ug_from_uj_dfr(ugminv[i], ugmaxv[i], u1, u2, u3, rhol, rhog, ALPHA, theta, D, AREA, EPS, G, MUL, MUG, sigma, w_u, w_rho, tol, maxit)
+           if ug > 0:
+               count += 1
+               ugv.append(ug)
 
-        ug1 = ug2
-        fv1 = fv2
+   if count == 0:
+       ugv.append(0)
 
-    if counti == 0:
-        print("No interval containing the root of the drift-flux relationship was found.")
-        if count > 0:
-            print("Roots of the drift-flux relationship were found.")
-            print("Number of roots:", count)
-    else:
-        for i in range(1, counti + 1):
-            ug = find_one_ug_from_uj_dfr(ugminv[i - 1], ugmaxv[i - 1], u1, u2, u3, rhol, rhog, ALPHA, theta, D, AREA, EPS, G,
-                                         MUL, MUG, sigma, w_u, w_rho, tol, maxit)
-            if ug > 0:
-                count += 1
-                ugv[count - 1] = ug
+   return ugv, count
 
-    return ugv[:count], count
+# A função auxiliar drift_flux_swananda e find_one_ug_from_uj_dfr precisam ser implementadas no seu código Python.
 
 def find_all_ug_from_uj_dfr(u1, u2, u3, rhol, rhog, ALPHA, theta, D, AREA, EPS, G, MUL, MUG, sigma, w_u, w_rho, tol, maxit):
    """

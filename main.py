@@ -264,73 +264,10 @@ def calculate_residuals(N, dt, dx, residuals, w_conserv, w_source, U_new, U, tol
                     residual_max[j] = max(residual_max[j], abs(U_new[i, j]))
     return residual_max
 
-def simulate_pipeline(U, F1, tol, n, nCg, nCl, nP_l0, nrho_l0, nPs, omega_c, omega_P, omega_rho, X, Z, mu_g, mu_l, eps, D_H, Lp, theta_0, delta_x, T, CFL, sigma, omega_u, AREA, G, alpha_start_dim, rho_l_start_dim, rho_g_start_dim, alpha_end_dim, rho_l_end_dim, rho_g_end_dim, nulv, nugv):
-    n = U.shape[0]
-    time = 0
-    delta_t_min = 1e-6
-    residuals = np.zeros((n, 3))
-    U_new = U.copy()
-    
-    # Armazenar valores de U ao longo do tempo
-    time_values = []
-    U1_values = []
-    U2_values = []
-    U3_values = []
-    
-    while time < T:
-        print("Tempo atual:", time)
-        # apply_boundary_conditions(U, alpha_start_dim, rho_l_start_dim, rho_g_start_dim, nulv[0], nugv[0], alpha_end_dim, rho_l_end_dim, rho_g_end_dim, nulv[-1], nugv[-1])
-        for i in range(n - 1):
-            theta = compute_catenary(i * delta_x, Z, Lp, theta_0)
-            alpha_i, rho_l_i, rho_g_i, u_l_i, u_g_i, P_i = compute_primitive(*U[i, :])
-            alpha_ip1, rho_l_ip1, rho_g_ip1, u_l_ip1, u_g_ip1, P_ip1 = compute_primitive(*U[i + 1, :])
-
-            alpha_i_star, rho_l_i_star, rho_g_i_star, u_l_i_star, u_g_i_star, P_i_star = compute_average_primitive_variables(alpha_i, alpha_ip1, rho_l_i, rho_l_ip1, rho_g_i, rho_g_ip1, u_l_i, u_l_ip1, u_g_i, u_g_ip1, P_i, P_ip1)
-            U_i_star = compute_average_conservative_variables(alpha_i_star, rho_l_i_star, rho_g_i_star, u_l_i_star, u_g_i_star, P_i_star)
-            F_i_star = compute_average_flux_vector(alpha_i_star, rho_l_i_star, rho_g_i_star, u_l_i_star, u_g_i_star, P_i_star)
-            U_ip1_star = compute_average_conservative_variables(alpha_ip1, rho_l_ip1, rho_g_ip1, u_l_ip1, u_g_ip1, P_ip1)
-            F_ip1_star = compute_average_flux_vector(alpha_ip1, rho_l_ip1, rho_g_ip1, u_l_ip1, u_g_ip1, P_ip1)
-
-            Roe_matrix = compute_roe_matrix(U[i], U[i + 1], alpha_i_star, rho_l_i_star, rho_g_i_star, u_l_i_star, u_g_i_star, nCl, nCg, theta, D_H, AREA, eps, G, mu_l, mu_g, sigma, omega_u, omega_rho, omega_P, tol)
-            residuals[i, :] = -np.dot(Roe_matrix, (U[i + 1, :] - U[i, :])) + (F_ip1_star - F_i_star) / delta_x
- 			
-            delta_t = compute_time_step_lax_wendroff(CFL, delta_x, Roe_matrix)
-            delta_t_min = min(delta_t_min, delta_t)
- 			
-            numerical_flux = roe_riemann_solver(F_i_star, F_ip1_star, U_i_star, U_ip1_star, Roe_matrix)
-            rho_m_i, sin_theta_i, f_m_i, j_i, R_e_m_i = compute_mixture_parameters(alpha_i, rho_l_i, rho_g_i, u_l_i, u_g_i, D_H, i, Z, eps, mu_g, mu_l, Lp, theta_0)
-            source_term = compute_source_term_vector(U[i], alpha_i, rho_m_i, np.sin(theta), f_m_i, j_i)
-            residuals[i, :] += source_term
- 			
-            U[i] = update_solution_at_interface(U[i], numerical_flux, source_term, delta_t_min, delta_x)
-            print("Celula:",i)
-            
-        residual_max = calculate_residuals(n, delta_t, delta_x, residuals, w_conserv=1.0, w_source=1.0, U_new=U_new, U=U, tol=tol)
-        
-        U = U_new.copy()
-		
-		# Atualiza o tempo
-        time += delta_t#_min
-        
-        # Armazenar valores
-        time_values.append(time)
-        U1_values.append(U[:, 0].copy())
-        U2_values.append(U[:, 1].copy())
-        U3_values.append(U[:, 2].copy())
-
-        # Verifica se o tempo ultrapassou T e sai do loop principal, se necessário
-        if time >= T:
-            break
-    
-        # if np.all(residual_max < tol):
-        #     break
-    return U, time_values, U1_values, U2_values, U3_values
-
 # def simulate_pipeline(U, F1, tol, n, nCg, nCl, nP_l0, nrho_l0, nPs, omega_c, omega_P, omega_rho, X, Z, mu_g, mu_l, eps, D_H, Lp, theta_0, delta_x, T, CFL, sigma, omega_u, AREA, G, alpha_start_dim, rho_l_start_dim, rho_g_start_dim, alpha_end_dim, rho_l_end_dim, rho_g_end_dim, nulv, nugv):
 #     n = U.shape[0]
 #     time = 0
 #     delta_t_min = 1e-6
-#     tola = tol * 100
 #     residuals = np.zeros((n, 3))
 #     U_new = U.copy()
     
@@ -342,14 +279,11 @@ def simulate_pipeline(U, F1, tol, n, nCg, nCl, nP_l0, nrho_l0, nPs, omega_c, ome
     
 #     while time < T:
 #         print("Tempo atual:", time)
-        
-#         # Aplicar condições de contorno
-#         apply_boundary_conditions(U, alpha_start_dim, rho_l_start_dim, rho_g_start_dim, nulv[0], nugv[0], alpha_end_dim, rho_l_end_dim, rho_g_end_dim, nulv[-1], nugv[-1])
-        
+#         # apply_boundary_conditions(U, alpha_start_dim, rho_l_start_dim, rho_g_start_dim, nulv[0], nugv[0], alpha_end_dim, rho_l_end_dim, rho_g_end_dim, nulv[-1], nugv[-1])
 #         for i in range(n - 1):
 #             theta = compute_catenary(i * delta_x, Z, Lp, theta_0)
-#             alpha_i, rho_l_i, rho_g_i, u_l_i, u_g_i, P_i = compute_primitive_variables(*U[i, :], theta, nCg, nCl, nrho_l0, nP_l0, D_H, AREA, eps, G, mu_l, mu_g, sigma, omega_u, omega_rho, tol, tola, n)
-#             alpha_ip1, rho_l_ip1, rho_g_ip1, u_l_ip1, u_g_ip1, P_ip1 = compute_primitive_variables(*U[i + 1, :], theta, nCg, nCl, nrho_l0, nP_l0, D_H, AREA, eps, G, mu_l, mu_g, sigma, omega_u, omega_rho, tol, tola, n)
+#             alpha_i, rho_l_i, rho_g_i, u_l_i, u_g_i, P_i = compute_primitive(*U[i, :])
+#             alpha_ip1, rho_l_ip1, rho_g_ip1, u_l_ip1, u_g_ip1, P_ip1 = compute_primitive(*U[i + 1, :])
 
 #             alpha_i_star, rho_l_i_star, rho_g_i_star, u_l_i_star, u_g_i_star, P_i_star = compute_average_primitive_variables(alpha_i, alpha_ip1, rho_l_i, rho_l_ip1, rho_g_i, rho_g_ip1, u_l_i, u_l_ip1, u_g_i, u_g_ip1, P_i, P_ip1)
 #             U_i_star = compute_average_conservative_variables(alpha_i_star, rho_l_i_star, rho_g_i_star, u_l_i_star, u_g_i_star, P_i_star)
@@ -357,27 +291,26 @@ def simulate_pipeline(U, F1, tol, n, nCg, nCl, nP_l0, nrho_l0, nPs, omega_c, ome
 #             U_ip1_star = compute_average_conservative_variables(alpha_ip1, rho_l_ip1, rho_g_ip1, u_l_ip1, u_g_ip1, P_ip1)
 #             F_ip1_star = compute_average_flux_vector(alpha_ip1, rho_l_ip1, rho_g_ip1, u_l_ip1, u_g_ip1, P_ip1)
 
-#             theta = compute_catenary(i * delta_x, Z, Lp, theta_0)
 #             Roe_matrix = compute_roe_matrix(U[i], U[i + 1], alpha_i_star, rho_l_i_star, rho_g_i_star, u_l_i_star, u_g_i_star, nCl, nCg, theta, D_H, AREA, eps, G, mu_l, mu_g, sigma, omega_u, omega_rho, omega_P, tol)
 #             residuals[i, :] = -np.dot(Roe_matrix, (U[i + 1, :] - U[i, :])) + (F_ip1_star - F_i_star) / delta_x
-            
+ 			
 #             delta_t = compute_time_step_lax_wendroff(CFL, delta_x, Roe_matrix)
 #             delta_t_min = min(delta_t_min, delta_t)
-            
+ 			
 #             numerical_flux = roe_riemann_solver(F_i_star, F_ip1_star, U_i_star, U_ip1_star, Roe_matrix)
 #             rho_m_i, sin_theta_i, f_m_i, j_i, R_e_m_i = compute_mixture_parameters(alpha_i, rho_l_i, rho_g_i, u_l_i, u_g_i, D_H, i, Z, eps, mu_g, mu_l, Lp, theta_0)
 #             source_term = compute_source_term_vector(U[i], alpha_i, rho_m_i, np.sin(theta), f_m_i, j_i)
 #             residuals[i, :] += source_term
+ 			
+#             U[i] = update_solution_at_interface(U[i], numerical_flux, source_term, delta_t_min, delta_x)
+#             print("Celula:",i)
             
-#             U_new[i] = update_solution_at_interface(U[i], numerical_flux, source_term, delta_t_min, delta_x)
-#             print("Celula:", i)
-        
 #         residual_max = calculate_residuals(n, delta_t, delta_x, residuals, w_conserv=1.0, w_source=1.0, U_new=U_new, U=U, tol=tol)
         
 #         U = U_new.copy()
-        
-#         # Atualiza o tempo
-#         time += delta_t_min
+		
+# 		# Atualiza o tempo
+#         time += delta_t#_min
         
 #         # Armazenar valores
 #         time_values.append(time)
@@ -388,12 +321,79 @@ def simulate_pipeline(U, F1, tol, n, nCg, nCl, nP_l0, nrho_l0, nPs, omega_c, ome
 #         # Verifica se o tempo ultrapassou T e sai do loop principal, se necessário
 #         if time >= T:
 #             break
-        
-#         # Verificação de convergência (descomente se necessário)
+    
 #         # if np.all(residual_max < tol):
 #         #     break
-    
 #     return U, time_values, U1_values, U2_values, U3_values
+
+def simulate_pipeline(U, F1, tol, n, nCg, nCl, nP_l0, nrho_l0, omega_P, omega_rho, X, Z, mu_g, mu_l, eps, D_H, Lp, theta_0, delta_x, T, CFL, sigma, omega_u, AREA, G, alpha_start_dim, rho_l_start_dim, rho_g_start_dim, alpha_end_dim, rho_l_end_dim, rho_g_end_dim, nulv, nugv):
+    n = U.shape[0]
+    time = 0
+    delta_t_min = 1e-6
+    tola = tol * 100
+    residuals = np.zeros((n, 3))
+    U_new = U.copy()
+    
+    # Armazenar valores de U ao longo do tempo
+    time_values = []
+    U1_values = []
+    U2_values = []
+    U3_values = []
+    
+    while time < T:
+        print("Tempo atual:", time)
+        
+        # Aplicar condições de contorno
+        apply_boundary_conditions(U, alpha_start_dim, rho_l_start_dim, rho_g_start_dim, nulv[0], nugv[0], alpha_end_dim, rho_l_end_dim, rho_g_end_dim, nulv[-1], nugv[-1])
+        
+        for i in range(n - 1):
+            theta = compute_catenary(i * delta_x, Z, Lp, theta_0)
+            alpha_i, rho_l_i, rho_g_i, u_l_i, u_g_i, P_i = compute_primitive_variables(U[i,0], U[i,1], U[i,2], theta, nCg, nCl, nrho_l0, nP_l0, D_H, AREA, eps, G, mu_l, mu_g, sigma, omega_u, omega_rho, tol, tola, n)
+            alpha_ip1, rho_l_ip1, rho_g_ip1, u_l_ip1, u_g_ip1, P_ip1 = compute_primitive_variables(U[i+1,0], U[i+1,1], U[i+1,2], theta, nCg, nCl, nrho_l0, nP_l0, D_H, AREA, eps, G, mu_l, mu_g, sigma, omega_u, omega_rho, tol, tola, n)
+
+            alpha_i_star, rho_l_i_star, rho_g_i_star, u_l_i_star, u_g_i_star, P_i_star = compute_average_primitive_variables(alpha_i, alpha_ip1, rho_l_i, rho_l_ip1, rho_g_i, rho_g_ip1, u_l_i, u_l_ip1, u_g_i, u_g_ip1, P_i, P_ip1)
+            U_i_star = compute_average_conservative_variables(alpha_i_star, rho_l_i_star, rho_g_i_star, u_l_i_star, u_g_i_star, P_i_star)
+            F_i_star = compute_average_flux_vector(alpha_i_star, rho_l_i_star, rho_g_i_star, u_l_i_star, u_g_i_star, P_i_star)
+            U_ip1_star = compute_average_conservative_variables(alpha_ip1, rho_l_ip1, rho_g_ip1, u_l_ip1, u_g_ip1, P_ip1)
+            F_ip1_star = compute_average_flux_vector(alpha_ip1, rho_l_ip1, rho_g_ip1, u_l_ip1, u_g_ip1, P_ip1)
+
+            theta = compute_catenary(i * delta_x, Z, Lp, theta_0)
+            Roe_matrix = compute_roe_matrix(U[i], U[i + 1], alpha_i_star, rho_l_i_star, rho_g_i_star, u_l_i_star, u_g_i_star, nCl, nCg, theta, D_H, AREA, eps, G, mu_l, mu_g, sigma, omega_u, omega_rho, omega_P, tol)
+            residuals[i, :] = -np.dot(Roe_matrix, (U[i + 1, :] - U[i, :])) + (F_ip1_star - F_i_star) / delta_x
+            
+            delta_t = compute_time_step_lax_wendroff(CFL, delta_x, Roe_matrix)
+            delta_t_min = min(delta_t_min, delta_t)
+            
+            numerical_flux = roe_riemann_solver(F_i_star, F_ip1_star, U_i_star, U_ip1_star, Roe_matrix)
+            rho_m_i, sin_theta_i, f_m_i, j_i, R_e_m_i = compute_mixture_parameters(alpha_i, rho_l_i, rho_g_i, u_l_i, u_g_i, D_H, i, Z, eps, mu_g, mu_l, Lp, theta_0)
+            source_term = compute_source_term_vector(U[i], alpha_i, rho_m_i, np.sin(theta), f_m_i, j_i)
+            residuals[i, :] += source_term
+            
+            U_new[i] = update_solution_at_interface(U[i], numerical_flux, source_term, delta_t_min, delta_x)
+            print("Celula:", i)
+        
+        residual_max = calculate_residuals(n, delta_t, delta_x, residuals, w_conserv=1.0, w_source=1.0, U_new=U_new, U=U, tol=tol)
+        
+        U = U_new.copy()
+        
+        # Atualiza o tempo
+        time += delta_t_min
+        
+        # Armazenar valores
+        time_values.append(time)
+        U1_values.append(U[:, 0].copy())
+        U2_values.append(U[:, 1].copy())
+        U3_values.append(U[:, 2].copy())
+
+        # Verifica se o tempo ultrapassou T e sai do loop principal, se necessário
+        if time >= T:
+            break
+        
+        # Verificação de convergência (descomente se necessário)
+        # if np.all(residual_max < tol):
+        #     break
+    
+    return U, time_values, U1_values, U2_values, U3_values
 
 
 # Plotar gráficos
@@ -476,13 +476,13 @@ for i in range(n):
     U[i, 1] = u2
     U[i, 2] = u3
     # Condições iniciais de F1
-    alpha, rho_l, rho_g, u_l, u_g, P = compute_primitive_variables(*U[i, :], theta_0, nCg, nCl, nrho_l0, nP_l0, D_H, AREA, eps, G, mu_l, mu_g, sigma, omega_u, omega_rho, tol, tola, n)
-    print("alpha:",alpha)
+    alpha, rho_l, rho_g, u_l, u_g, P = compute_primitive_variables(U[i,0], U[i,1], U[i,2], thetav[i], nCg, nCl, nrho_l0, nP_l0, D_H, AREA, eps, G, mu_l, mu_g, sigma, omega_u, omega_rho, tol, tola, n)
+    print("alpha:",alpha)                                         
     # alpha, rho_l, rho_g, u_l, u_g, P = compute_primitive(*U[i, :])
     F1[i, :] = compute_F1(alpha, rho_l, rho_g, u_l, u_g)
     
 # Simulação
-U_final, time_values, U1_values, U2_values, U3_values = simulate_pipeline(U, F1, tol, n, nCg, nCl, nP_l0, nrho_l0, nPs, omega_c, omega_P, omega_rho, X, Z, mu_g, mu_l, eps, D_H, Lp, theta_0, delta_x, T, CFL, sigma, omega_u, AREA, G, alpha_start_dim, rho_l_start_dim, rho_g_start_dim, alpha_end_dim, rho_l_end_dim, rho_g_end_dim, nulv, nugv)
+U_final, time_values, U1_values, U2_values, U3_values = simulate_pipeline(U, F1, tol, n, nCg, nCl, nP_l0, nrho_l0, omega_P, omega_rho, X, Z, mu_g, mu_l, eps, D_H, Lp, theta_0, delta_x, T, CFL, sigma, omega_u, AREA, G, alpha_start_dim, rho_l_start_dim, rho_g_start_dim, alpha_end_dim, rho_l_end_dim, rho_g_end_dim, nulv, nugv)
 
 # Plotando os resultados
 plt.figure(1)
