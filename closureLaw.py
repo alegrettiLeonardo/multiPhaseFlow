@@ -760,79 +760,79 @@ def Ddrift_flux_swananda_ndim(alpha, rhol, rhog, ul, ug, theta, DH, AREA, EPS, G
 
     return dfda, dfdrhog, dfdrhol, dfdug, dfdul
 
-def RelEquilLocalPipe_comp(ul, ug, rhol, rhog, ALPHA, BETA, D, AREA, EPS, G, MUL, MUG, w_u, w_rho, tol):
-   """
-   Calcula o valor da relação de equilíbrio local adimensional.
+# def RelEquilLocalPipe_comp(ul, ug, rhol, rhog, ALPHA, BETA, D, AREA, EPS, G, MUL, MUG, w_u, w_rho, tol):
+#    """
+#    Calcula o valor da relação de equilíbrio local adimensional.
 
-   Parâmetros:
-   ul: Velocidade adimensional do líquido em um ponto do pipe
-   ug: Velocidade adimensional do gás em um ponto do pipe
-   rhol: Densidade adimensional do líquido
-   rhog: Densidade adimensional do gás
-   ALPHA: Fração de vazio em um ponto do pipe
-   BETA: Ângulo de inclinação do pipe
-   AREA: Área seccional da tubulação do pipeline e riser
-   D: Diâmetro da tubulação
-   EPS: Rugosidade do tubo do pipeline
-   G: Aceleração da gravidade
-   MUL: Viscosidade dinâmica do líquido
-   MUG: Viscosidade dinâmica do gás
-   w_u: Escala de velocidade
-   w_rho: Escala de densidade
-   tol: Tolerância numérica
+#    Parâmetros:
+#    ul: Velocidade adimensional do líquido em um ponto do pipe
+#    ug: Velocidade adimensional do gás em um ponto do pipe
+#    rhol: Densidade adimensional do líquido
+#    rhog: Densidade adimensional do gás
+#    ALPHA: Fração de vazio em um ponto do pipe
+#    BETA: Ângulo de inclinação do pipe
+#    AREA: Área seccional da tubulação do pipeline e riser
+#    D: Diâmetro da tubulação
+#    EPS: Rugosidade do tubo do pipeline
+#    G: Aceleração da gravidade
+#    MUL: Viscosidade dinâmica do líquido
+#    MUG: Viscosidade dinâmica do gás
+#    w_u: Escala de velocidade
+#    w_rho: Escala de densidade
+#    tol: Tolerância numérica
 
-   Retorna:
-   fun: Valor da relação de equilíbrio local adimensional
-   """
-   PID = (D * G) / (4 * (w_u ** 2))
-   gamma = voidFraction.alpha2gamma(ALPHA, tol)
-   gammai = math.sin(math.pi * gamma) / math.pi
+#    Retorna:
+#    fun: Valor da relação de equilíbrio local adimensional
+#    """
+#    PID = (D * G) / (4 * (w_u ** 2))
+#    gamma = voidFraction.alpha2gamma(ALPHA, tol)
+#    gammai = math.sin(math.pi * gamma) / math.pi
 
-   # Número de Reynolds para o líquido
-   Rel = ((w_rho * w_u * D) / MUL) * rhol * abs((1 - ALPHA) * ul) / gamma
+#    # Número de Reynolds para o líquido
+#    Rel = ((w_rho * w_u * D) / MUL) * rhol * abs((1 - ALPHA) * ul) / gamma
 
-   # Número de Reynolds para o gás
-   Reg = ((w_u * w_rho * D) / MUG) * rhog * abs(ALPHA * ug) / (1.0 - gamma + gammai)
+#    # Número de Reynolds para o gás
+#    Reg = ((w_u * w_rho * D) / MUG) * rhog * abs(ALPHA * ug) / (1.0 - gamma + gammai)
 
-   # Perímetros molhados
-   Sl = math.pi * D * gamma
-   Sg = math.pi * D * (1.0 - gamma)
-   Si = math.pi * D * gammai
+#    # Perímetros molhados
+#    Sl = math.pi * D * gamma
+#    Sg = math.pi * D * (1.0 - gamma)
+#    Si = math.pi * D * gammai
 
-   # Diâmetros hidráulicos
-   Dl = 4.0 * (1.0 - ALPHA) * AREA / Sl
-   Dg = 4.0 * ALPHA * AREA / (Sg + Si)
+#    # Diâmetros hidráulicos
+#    Dl = 4.0 * (1.0 - ALPHA) * AREA / Sl
+#    Dg = 4.0 * ALPHA * AREA / (Sg + Si)
 
-   # Fatores de atrito
-   if Rel >= tol:
-       fl = voidFraction.ffan(EPS / Dl, Rel)
-   else:
-       fl = 0
+#    # Fatores de atrito
+#    if Rel >= tol:
+#        fl = voidFraction.ffan(EPS / Dl, Rel)
+#    else:
+#        fl = 0
 
-   if Reg >= tol:
-       fg = voidFraction.ffan(EPS / Dg, Reg)
-   else:
-       fg = 0
+#    if Reg >= tol:
+#        fg = voidFraction.ffan(EPS / Dg, Reg)
+#    else:
+#        fg = 0
 
-   fi = 0.0142  # mesmo que utilizado em fungamma.m
+#    fi = 0.0142  # mesmo que utilizado em fungamma.m
 
-   # Cálculo de ui
-   if Rel < 2000:
-       ui = 1.8 * ul
-   elif Rel > 2200:
-       ui = ul
-   else:
-       ui = ul * (1.8 * (2200 - Rel) + (Rel - 2000)) / 200
+#    # Cálculo de ui
+#    if Rel < 2000:
+#        ui = 1.8 * ul
+#    elif Rel > 2200:
+#        ui = ul
+#    else:
+#        ui = ul * (1.8 * (2200 - Rel) + (Rel - 2000)) / 200
 
-   # Cálculo da relação de equilíbrio local
-   auxa = fg * rhog * ug * abs(ug) * (1 - gamma) / ALPHA
-   auxb = rhol * fl * ul * abs(ul) * gamma / (1.0 - ALPHA)
-   auxc = fi * rhog * (ug - ui) * abs(ug - ui) * (gammai / (ALPHA * (1.0 - ALPHA)))
-   auxd = PID * (rhol - rhog) * math.sin(BETA)
+#    # Cálculo da relação de equilíbrio local
+#    auxa = fg * rhog * ug * abs(ug) * (1 - gamma) / ALPHA
+#    auxb = rhol * fl * ul * abs(ul) * gamma / (1.0 - ALPHA)
+#    auxc = fi * rhog * (ug - ui) * abs(ug - ui) * (gammai / (ALPHA * (1.0 - ALPHA)))
+#    auxd = PID * (rhol - rhog) * math.sin(BETA)
 
-   fun = auxa / 2 - auxb / 2 + auxc / 2 + auxd
+#    fun = auxa / 2 - auxb / 2 + auxc / 2 + auxd
 
-   return fun
+#    return fun
 
 
 def DRelEquiLocal_pipe_comp(alpha,rhol,rhog,ul,ug,theta,D,AREA,EPS,G,MUL,MUG,sigma,w_u,w_rho,tol):

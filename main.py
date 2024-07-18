@@ -412,7 +412,7 @@ n = 1001                        # número de pontos da malha
 X = 6.435                       # comprimento do tubo
 Z = 9.886                       # altura do tubo
 Lp = 10.0                       # comprimento da porção inclinada
-theta_0 = 3.0                   # ângulo inicial em graus
+theta_0 = 5.0                   # ângulo inicial em graus
 Cg = 343.0                      # velocidade do som no gás
 Cl = 1498.0                     # velocidade do som no líquido
 P_l0 = 101325.0                 # pressão de referência
@@ -436,7 +436,7 @@ CA, Lr = calcular_catenaria(X, Z, tol)
 delta_x = ((Lp + Lr)/ Lr) / (n - 1)
 S = Lp + X
 U = np.zeros((n, 3))
-F1 = np.zeros((n, 3))
+F = np.zeros((n, 3))
 
 # Adimensionalização
 nCg, nCl, nP_l0, nrho_l0, nPs, omega_c, omega_P, omega_rho = adimensionalizar(Cg, Cl, P_l0, rho_l0, Ps)
@@ -452,7 +452,7 @@ nrhol0 = rhol0 / omega_rho
     
 # Geração dos vetores de velocidade superficial
 vjl, vjg = gerar_vetores_velocidade_superficial(n)
-jl = 0.01
+jl = 0.005
 jg = 0.001
 omega_u = np.maximum(jl, jg)
 nmul = rhol0 * jl * AREA
@@ -479,10 +479,10 @@ for i in range(n):
     alpha, rho_l, rho_g, u_l, u_g, P = compute_primitive_variables(U[i,0], U[i,1], U[i,2], thetav[i], nCg, nCl, nrho_l0, nP_l0, D_H, AREA, eps, G, mu_l, mu_g, sigma, omega_u, omega_rho, tol, tola, n)
     print("alpha:",alpha)                                         
     # alpha, rho_l, rho_g, u_l, u_g, P = compute_primitive(*U[i, :])
-    F1[i, :] = compute_F1(alpha, rho_l, rho_g, u_l, u_g)
+    F[i, :] = compute_F1(alpha, rho_l, rho_g, u_l, u_g)
     
 # Simulação
-U_final, time_values, U1_values, U2_values, U3_values = simulate_pipeline(U, F1, tol, n, nCg, nCl, nP_l0, nrho_l0, omega_P, omega_rho, X, Z, mu_g, mu_l, eps, D_H, Lp, theta_0, delta_x, T, CFL, sigma, omega_u, AREA, G, alpha_start_dim, rho_l_start_dim, rho_g_start_dim, alpha_end_dim, rho_l_end_dim, rho_g_end_dim, nulv, nugv)
+U_final, time_values, U1_values, U2_values, U3_values = simulate_pipeline(U, F, tol, n, nCg, nCl, nP_l0, nrho_l0, omega_P, omega_rho, X, Z, mu_g, mu_l, eps, D_H, Lp, theta_0, delta_x, T, CFL, sigma, omega_u, AREA, G, alpha_start_dim, rho_l_start_dim, rho_g_start_dim, alpha_end_dim, rho_l_end_dim, rho_g_end_dim, nulv, nugv)
 
 # Plotando os resultados
 plt.figure(1)
