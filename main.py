@@ -283,8 +283,6 @@ def simulate_pipeline(U, tol, n, nCg, nCl, nP_l0, nrho_l0, nPs, omega_c, omega_P
         apply_boundary_conditions(U, alpha_start_dim, rho_l_start_dim, rho_g_start_dim, nulv[0], nugv[0], alpha_end_dim, rho_l_end_dim, rho_g_end_dim, nulv[-1], nugv[-1])
         for i in range(n - 1):
             theta = compute_catenary(i * delta_x, Z, Lp, theta_0)
-            # alpha_i, rho_l_i, rho_g_i, u_l_i, u_g_i, P_i = compute_primitive(*U[i, :])
-            # alpha_ip1, rho_l_ip1, rho_g_ip1, u_l_ip1, u_g_ip1, P_ip1 = compute_primitive(*U[i + 1, :])
             alpha_i, rho_l_i, rho_g_i, P_i, u_l_i, u_g_i, index = compute_primitive_variables(U[i,0], U[i,1], U[i,2], theta, nCg, nCl, nrho_l0, nP_l0, D_H, AREA, eps, G, mu_l, mu_g, sigma, omega_u, omega_rho, tol, tola, n)
             alpha_ip1, rho_l_ip1, rho_g_ip1, P_ip1, u_l_ip1, u_g_ip1, index = compute_primitive_variables(U[i+1,0], U[i+1,1], U[i+1,2], theta, nCg, nCl, nrho_l0, nP_l0, D_H, AREA, eps, G, mu_l, mu_g, sigma, omega_u, omega_rho, tol, tola, n)
             
@@ -341,7 +339,7 @@ def plot_results(time_values, U_values, label):
     plt.show()
     
 # Parâmetros de entrada e condições iniciais
-n = 1001                        # número de pontos da malha
+n = 501                        # número de pontos da malha
 X = 6.435                       # comprimento do tubo
 Z = 9.886                       # altura do tubo
 Lp = 10.0                       # comprimento da porção inclinada
@@ -385,16 +383,14 @@ nrhol0 = rhol0 / omega_rho
     
 # Geração dos vetores de velocidade superficial
 vjl, vjg = gerar_vetores_velocidade_superficial(n)
-jl = 0.009
-jg = 0.001
+jl = 1e-2
+jg = 1e-3
 omega_u = np.maximum(jl, jg)
 nmul = rhol0 * jl * AREA
 nmug = rhog0 * jg * AREA 
 vns, vnp, nrhogv, nrholv, alphav, nugv, nulv, thetav = steadyState.EstadoEstacionario_ndim_simp(n, nmul, nmug, Ps, Lp, Lr, CA, np.radians(theta_0), D_H, AREA, eps, G, Cl, Cg, rho_l0, P_l0, mu_l, mu_g, sigma, omega_P, omega_u, omega_rho, tol)
 
-dot_M_l0 = nmul 
-dot_M_g0 = nmug 
-alpha_start, rho_l_start, rho_g_start, alpha_end, rho_l_end, rho_g_end, P_inlet, P_outlet = boundaryConditions.calculate_boundary_conditions(U[0, 0], U[0, 1], U[0, 2], nCl, nCg, nrho_l0, nP_l0, dot_M_l0, dot_M_g0, AREA, Lp, Lr)
+alpha_start, rho_l_start, rho_g_start, alpha_end, rho_l_end, rho_g_end, P_inlet, P_outlet = boundaryConditions.calculate_boundary_conditions(U[0, 0], U[0, 1], U[0, 2], nCl, nCg, nrho_l0, nP_l0, nmul, nmug, AREA, Lp, Lr)
 alpha_start_dim = alpha_start
 rho_l_start_dim = rho_l_start / omega_rho
 rho_g_start_dim = rho_g_start / omega_rho
@@ -409,39 +405,40 @@ for i in range(n):
     U[i, 1] = u2
     U[i, 2] = u3
 #     # Condições iniciais de F1
-#     alpha, rho_l, rho_g, u_l, u_g, P = compute_primitive_variables(U[i,0], U[i,1], U[i,2], thetav[i], nCg, nCl, nrho_l0, nP_l0, D_H, AREA, eps, G, mu_l, mu_g, sigma, omega_u, omega_rho, tol, tola, n)
-#     # print("alpha:",alpha)                                         
+#     alpha, rho_l, rho_g, u_l, u_g, P = compute_primitive_variables(*U[i, :], thetav[i], nCg, nCl, nrho_l0, nP_l0, D_H, AREA, eps, G, mu_l, mu_g, sigma, omega_u, omega_rho, tol, tola, n)
+#     print("alpha:",alpha)
 #     # alpha, rho_l, rho_g, u_l, u_g, P = compute_primitive(*U[i, :])
+#     # print("alpha:",alpha)
 #     F[i, :] = compute_F1(alpha, rho_l, rho_g, u_l, u_g)
     
 # Simulação
-U_final, time_values, U1_values, U2_values, U3_values = simulate_pipeline(U, tol, n, nCg, nCl, nP_l0, nrho_l0, omega_P, omega_rho, X, Z, mu_g, mu_l, eps, D_H, Lp, theta_0, delta_x, T, CFL, sigma, omega_u, AREA, G, alpha_start_dim, rho_l_start_dim, rho_g_start_dim, alpha_end_dim, rho_l_end_dim, rho_g_end_dim, nulv, nugv)
+U_final, time_values, U1_values, U2_values, U3_values = simulate_pipeline(U, tol, n, nCg, nCl, nP_l0, nrho_l0, nPs, omega_c, omega_P, omega_rho, X, Z, mu_g, mu_l, eps, D_H, Lp, theta_0, delta_x, T, CFL, sigma, omega_u, AREA, G, alpha_start_dim, rho_l_start_dim, rho_g_start_dim, alpha_end_dim, rho_l_end_dim, rho_g_end_dim, nulv, nugv)
 
 # Plotando os resultados
 plt.figure(1)
 plt.plot(np.linspace(0, S, n), U_final[:, 0])
-plt.xlabel("Comprimento do tubo")
-plt.ylabel("Variável conservativa U1")
-plt.title("Distribuição de U1 ao longo do tubo")
+plt.xlabel('Comprimento do tubo')
+plt.ylabel('Variável conservativa U1')
+plt.title('Distribuição de U1 ao longo do tubo')
 plt.grid(True)
 plt.show()
     
 plt.figure(2)
 plt.plot(np.linspace(0, S, n), U_final[:, 1])
-plt.xlabel("Comprimento do tubo")
-plt.ylabel("Variável conservativa U2")
-plt.title("Distribuição de U2 ao longo do tubo")
+plt.xlabel('Comprimento do tubo')
+plt.ylabel('Variável conservativa U2')
+plt.title('Distribuição de U2 ao longo do tubo')
 plt.grid(True)
 plt.show()
     
 plt.figure(3)
 plt.plot(np.linspace(0, S, n), U_final[:, 2])
-plt.xlabel("Comprimento do tubo")
-plt.ylabel("Variável conservativa U3")
-plt.title("Distribuição de U3 ao longo do tubo")
+plt.xlabel('Comprimento do tubo')
+plt.ylabel('Variável conservativa U3')
+plt.title('Distribuição de U3 ao longo do tubo')
 plt.grid(True)
 plt.show()
 
-# plot_results(time_values, U1_values, 'U1')
-# plot_results(time_values, U2_values, 'U2')
-# plot_results(time_values, U3_values, 'U3')
+plot_results(time_values, U1_values, 'U1')
+plot_results(time_values, U2_values, 'U2')
+plot_results(time_values, U3_values, 'U3')

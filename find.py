@@ -40,7 +40,7 @@ def pressure_fun_uj(u1, u2, Cg, Cl, rho_l0, P_l0):
 
 def alpha_fun_uj(u1, u2, Cg, Cl, rho_l0, P_l0, tol):
     # Calculate alpha based on conservative variables u1 and u2
-
+    alpha = 0.5
     if abs(u2) < tol:
         alpha = 0
     else:
@@ -63,10 +63,6 @@ def alpha_fun_uj(u1, u2, Cg, Cl, rho_l0, P_l0, tol):
             alpha = alpha1
         elif 0 <= alpha2 <= 1:
             alpha = alpha2
-        else:
-            # No valid solution found
-            alpha = None
-
     return alpha
 
 def find_ul_ug_from_uj(u1, u2, u3, rhol, rhog, ALPHA, BETA, D, AREA, EPS, G, MUL, MUG, w_u, w_rho, tol, tola):
