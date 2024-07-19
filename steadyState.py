@@ -72,7 +72,7 @@ def fun_dpds(s, p, mul, mug, Lp, Lr, CA, beta, DH, AREA, EPS, G, Cl, Cg, rho_l0,
     auxb = -PIF * rhom * fm * jt * abs(jt) / 2.0
 
     dpds = (auxa + auxb) / auxc
-    # print(f"s: {s}, theta: {theta}, p: {p}, dpds: {dpds}")
+    print(f"s: {s}, theta: {theta}, p: {p}, dpds: {dpds}")
     return dpds
 
 
@@ -133,7 +133,6 @@ def EstadoEstacionario_ndim_simp(N, mul, mug, Ps, Lp, Lr, CA, beta, DH, AREA, EP
         njl = mul / nrholv[i]
         theta = fun_or_geo(vns[i] * Lr, Lp, beta, CA)
         thetav[i] = theta
-        print(f"s: {vns[i]}, p: {vnp[i]}")
         if theta <= 0:
             alphav[i] = voidFraction.FracaoVazio_comp(njl, njg, nrhogv[i], nrholv[i], -theta, DH, AREA, EPS, G, MUL, MUG, w_u, w_rho, tol)
         else:
