@@ -212,7 +212,7 @@ def calcular_catenaria(X, Z, tol):
     Lr = CA * np.sinh(X / CA)
     return CA, Lr
 
-def adimensionalizar(Cg, Cl, P_l0, rho_l0, Ps):
+def adimensionalizar(Cg, Cl, P_l0, rho_l0, Ps, jl, jg, mul, mug):
     omega_P = P_l0
     omega_rho = rho_l0
     omega_c = 1 / np.sqrt(omega_rho / omega_P)
@@ -221,7 +221,11 @@ def adimensionalizar(Cg, Cl, P_l0, rho_l0, Ps):
     nP_l0 = P_l0 / omega_P
     nrho_l0 = rho_l0 / omega_rho
     nPs = Ps / omega_P
-    return nCg, nCl, nP_l0, nrho_l0, nPs, omega_c, omega_P, omega_rho
+    njl = jl/omega_u
+    njg = jg/omega_u
+    nmul = mul/(rho_l0*omega_u)
+    nmug = mug/(rho_l0*omega_u)
+    return nCg, nCl, nP_l0, nrho_l0, nPs, njl, njg, nmul, nmug, omega_c, omega_P, omega_rho
 
 def gerar_vetores_velocidade_superficial(num_cells):
     jl = [0.001]
@@ -303,10 +307,10 @@ def simulate_pipeline(U, tol, n, nCg, nCl, nP_l0, nrho_l0, nPs, omega_c, omega_P
             residuals[i, :] += source_term
  			
             U[i] = update_solution_at_interface(U[i], numerical_flux, source_term, delta_t_min, delta_x)
-            # print("Celula:",i)
+            
             
         # residual_max = calculate_residuals(n, delta_t, delta_x, residuals, w_conserv=1.0, w_source=1.0, U_new=U_new, U=U, tol=tol)
-        
+        # print("Erro residual:",np.all(residual_max))
         U = U_new.copy()
 		
 		# Atualiza o tempo
@@ -352,7 +356,7 @@ Ps = 1.5*101325.0                 # pressão no tubo
 mu_g = 1.81e-5                  # viscosidade do gás
 mu_l = 1e-3                     # viscosidade do líquido
 eps = 4.6e-5                    # rugosidade
-D_H = 0.051                    # diâmetro hidráulico
+D_H = 2.54e-4                   # diâmetro hidráulico
 time = 2.0                          # tempo total de simulação
 CFL = 0.6                       # número de Courant-Friedrichs-Lewy
 tol = 1e-15
@@ -360,6 +364,11 @@ tola = tol * 100
 AREA = math.pi * (D_H**2)/4.0
 sigma = 7.28 * 10 ** (-2)
 G = 9.81
+# Geração dos vetores de velocidade superficial
+vjl, vjg = gerar_vetores_velocidade_superficial(n)
+jl = 10.0
+jg = 1.0
+omega_u = np.maximum(jl, jg)
 
 # Parâmetro da catenária
 CA, Lr = calcular_catenaria(X, Z, tol)
@@ -368,28 +377,20 @@ S = Lp + X
 U = np.zeros((n, 3))
 F = np.zeros((n, 3))
 
-# Adimensionalização
-nCg, nCl, nP_l0, nrho_l0, nPs, omega_c, omega_P, omega_rho = adimensionalizar(Cg, Cl, P_l0, rho_l0, Ps)
-    
 # Vazão de massa de líquido e gás na pressão de referência
 Pb = Ps + rho_l0 * G * Z
 rhog0 = Pb / (Cg ** 2)
 rhol0 = rho_l0 + (Pb - P_l0) / (Cl ** 2)
+mul = rhol0 * jl * AREA
+mug = rhog0 * jg * AREA
 
-# Adimensionalização dos valores de referência
+# Adimensionalização
+nCg, nCl, nP_l0, nrho_l0, nPs, njl, njg, nmul, nmug, omega_c, omega_P, omega_rho = adimensionalizar(Cg, Cl, P_l0, rho_l0, Ps, jl, jg, mul, mug)
 nrhog0 = rhog0 / omega_rho
 nrhol0 = rhol0 / omega_rho
-    
-# Geração dos vetores de velocidade superficial
-vjl, vjg = gerar_vetores_velocidade_superficial(n)
-jl = 0.1
-jg = 0.01
-omega_u = np.maximum(jl, jg)
-njl = jl/omega_u
-njg = jg/omega_u
-nmul = rhol0 * njl * AREA
-nmug = rhog0 * njg * AREA 
-ntime = time*(jl/Lr) 
+ntime = time*(jl/Lr)
+
+# Calculo do estado estacionário
 vns, vnp, nrhogv, nrholv, alphav, nugv, nulv, thetav = steadyState.EstadoEstacionario_ndim_simp(n, nmul, nmug, Ps, Lp, Lr, CA, np.radians(theta_0), D_H, AREA, eps, G, Cl, Cg, rho_l0, P_l0, mu_l, mu_g, sigma, omega_P, omega_u, omega_rho, tol)
 
 alpha_start, rho_l_start, rho_g_start, alpha_end, rho_l_end, rho_g_end, P_inlet, P_outlet = boundaryConditions.calculate_boundary_conditions(U[0, 0], U[0, 1], U[0, 2], nCl, nCg, nrho_l0, nP_l0, nmul, nmug, AREA, Lp, Lr)
