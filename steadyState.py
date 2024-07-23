@@ -101,7 +101,7 @@ def EstadoEstacionario_ndim_simp(N, mul, mug, Ps, Lp, Lr, CA, beta, DH, AREA, EP
 
     # Defina as opções de controle do integrador solve_ivp
     options = {
-        'method': 'DOP853', # Método de integração (pode ser 'BDF', 'DOP853', 'LSODA')
+        'method': 'LSODA', # Método de integração (pode ser 'BDF', 'DOP853', 'LSODA')
         'rtol': 100 * tol,
         'atol': tol,
         'max_step': ds,
