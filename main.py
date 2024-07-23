@@ -58,9 +58,6 @@ def compute_conservative_variables(P, Cl, Cg, rho_l_0, Pl_0, alpha, rho_l, ul, r
     u1 = (1 - alpha) * (rho_l_0 + (P - Pl_0) / Cl)
     u2 = alpha * P / (Cg**2)
     u3 = (1 - alpha) * rho_l * ul + alpha * rho_g * ug
-    # alpha_safe = np.where(alpha != 0, alpha, 1e-10)
-    # rho_g_safe = np.where(rho_g != 0, rho_g, 1e-10)
-    # u3 = (1 - alpha_safe) * rho_l * ul + alpha_safe * rho_g_safe * ug
     return u1, u2, u3
 
 def compute_catenary(s, z, Lp, theta_0):
@@ -216,6 +213,7 @@ def adimensionalizar(Cg, Cl, P_l0, rho_l0, Ps, jl, jg, mul, mug):
     omega_P = P_l0
     omega_rho = rho_l0
     omega_c = 1 / np.sqrt(omega_rho / omega_P)
+    omega_u = np.maximum(jl, jg)
     nCg = Cg / omega_c
     nCl = Cl / omega_c
     nP_l0 = P_l0 / omega_P
@@ -225,7 +223,7 @@ def adimensionalizar(Cg, Cl, P_l0, rho_l0, Ps, jl, jg, mul, mug):
     njg = jg/omega_u
     nmul = mul/(rho_l0*omega_u)
     nmug = mug/(rho_l0*omega_u)
-    return nCg, nCl, nP_l0, nrho_l0, nPs, njl, njg, nmul, nmug, omega_c, omega_P, omega_rho
+    return nCg, nCl, nP_l0, nrho_l0, nPs, njl, njg, nmul, nmug, omega_c, omega_P, omega_rho, omega_u
 
 def gerar_vetores_velocidade_superficial(num_cells):
     jl = [0.001]
@@ -364,11 +362,9 @@ tola = tol * 100
 AREA = math.pi * (D_H**2)/4.0
 sigma = 7.28 * 10 ** (-2)
 G = 9.81
-# Geração dos vetores de velocidade superficial
-vjl, vjg = gerar_vetores_velocidade_superficial(n)
 jl = 10.0
 jg = 1.0
-omega_u = np.maximum(jl, jg)
+
 
 # Parâmetro da catenária
 CA, Lr = calcular_catenaria(X, Z, tol)
@@ -385,7 +381,7 @@ mul = rhol0 * jl * AREA
 mug = rhog0 * jg * AREA
 
 # Adimensionalização
-nCg, nCl, nP_l0, nrho_l0, nPs, njl, njg, nmul, nmug, omega_c, omega_P, omega_rho = adimensionalizar(Cg, Cl, P_l0, rho_l0, Ps, jl, jg, mul, mug)
+nCg, nCl, nP_l0, nrho_l0, nPs, njl, njg, nmul, nmug, omega_c, omega_P, omega_rho, omega_u = adimensionalizar(Cg, Cl, P_l0, rho_l0, Ps, jl, jg, mul, mug)
 nrhog0 = rhog0 / omega_rho
 nrhol0 = rhol0 / omega_rho
 ntime = time*(jl/Lr)
@@ -403,7 +399,7 @@ rho_g_end_dim = rho_g_end / omega_rho
 
 for i in range(n):
     # Condições iniciais de U
-    u1, u2, u3 = compute_conservative_variables(nPs, nCl, nCg, nrho_l0, nP_l0, alphav[i], nrholv[i], nulv[i], nrhogv[i], nugv[i])
+    u1, u2, u3 = compute_conservative_variables(vnp[i], nCl, nCg, nrho_l0, nP_l0, alphav[i], nrholv[i], nulv[i], nrhogv[i], nugv[i])
     U[i, 0] = u1
     U[i, 1] = u2
     U[i, 2] = u3
