@@ -1,10 +1,3 @@
-# -*- coding: utf-8 -*-
-"""
-Created on Fri Jul  5 06:57:27 2024
-
-@author: leonardoab
-"""
-
 import numpy as np
 import math
 from math import pi, sinh
@@ -13,7 +6,7 @@ import find
 import matrixRoe
 import frictionFactor
 import steadyState
-import boundaryConditions
+# import boundaryConditions
 import matplotlib.pyplot as plt
 
 def calculate_boundary_conditions(U0, Un, nCl, nCg, nrho_l0, nP_l0, dot_M_l0, dot_M_g0, AREA, Lp, Lr):
@@ -172,11 +165,8 @@ def compute_source_term_vector(U_i, alpha_i, rho_m_i, sin_theta_i, f_m_i, j_i):
     return np.array([S1_i, S2_i, S3_i])
 
 def compute_roe_matrix(U_i, U_ip1, alpha_i_star, rho_l_i_star, rho_g_i_star, u_l_i_star, u_g_i_star, Cl, Cg, theta, DH, AREA, EPS, G, MUL, MUG, sigma, w_u, w_rho, w_P, tol):
-    Roe_matrix = matrixRoe.calculate_roe_matrix(alpha_i_star, rho_l_i_star, rho_g_i_star, u_l_i_star, u_g_i_star, Cl, Cg, theta, DH, AREA, EPS, G, MUL, MUG, sigma, w_u, w_rho, w_P, tol)
-    # Verificar se a matriz contém valores finitos e não NaNs
-    # if not np.all(np.isfinite(Roe_matrix)):
-    #     Roe_matrix = np.zeros_like(Roe_matrix)
-    return Roe_matrix
+    return matrixRoe.calculate_roe_matrix(alpha_i_star, rho_l_i_star, rho_g_i_star, u_l_i_star, u_g_i_star, Cl, Cg, theta, DH, AREA, EPS, G, MUL, MUG, sigma, w_u, w_rho, w_P, tol)
+    
 
 def compute_average_conservative_variables(alpha_i_star, rho_l_i_star, rho_g_i_star, u_l_i_star, u_g_i_star, P_i_star):
     return np.array([(1 - alpha_i_star) * rho_l_i_star, alpha_i_star * rho_g_i_star, (1 - alpha_i_star) * rho_l_i_star * u_l_i_star + alpha_i_star * rho_g_i_star * u_g_i_star])
@@ -355,21 +345,22 @@ mu_g = 1.81e-5                  # viscosidade do gás
 mu_l = 1e-3                     # viscosidade do líquido
 eps = 4.6e-5                    # rugosidade
 D_H = 2.54e-4                   # diâmetro hidráulico
-time = 2.0                          # tempo total de simulação
+time = 1.0                          # tempo total de simulação
 CFL = 0.6                       # número de Courant-Friedrichs-Lewy
 tol = 1e-15
 tola = tol * 100
 AREA = math.pi * (D_H**2)/4.0
 sigma = 7.28 * 10 ** (-2)
 G = 9.81
-jl = 10.0
+jl = 5.0
 jg = 1.0
 
 
 # Parâmetro da catenária
 CA, Lr = calcular_catenaria(X, Z, tol)
 delta_x = ((Lp + Lr)/ Lr) / (n - 1)
-S = Lp + X
+S = Lp + Lr
+nS = ((Lp + Lr) / Lr)
 U = np.zeros((n, 3))
 F = np.zeros((n, 3))
 
@@ -388,15 +379,6 @@ ntime = time*(jl/Lr)
 
 # Calculo do estado estacionário
 vns, vnp, nrhogv, nrholv, alphav, nugv, nulv, thetav = steadyState.EstadoEstacionario_ndim_simp(n, nmul, nmug, Ps, Lp, Lr, CA, np.radians(theta_0), D_H, AREA, eps, G, Cl, Cg, rho_l0, P_l0, mu_l, mu_g, sigma, omega_P, omega_u, omega_rho, tol)
-
-alpha_start, rho_l_start, rho_g_start, alpha_end, rho_l_end, rho_g_end, P_inlet, P_outlet = boundaryConditions.calculate_boundary_conditions(U[0, 0], U[0, 1], U[0, 2], nCl, nCg, nrho_l0, nP_l0, nmul, nmug, AREA, Lp, Lr)
-alpha_start_dim = alpha_start
-rho_l_start_dim = rho_l_start / omega_rho
-rho_g_start_dim = rho_g_start / omega_rho
-alpha_end_dim = alpha_end
-rho_l_end_dim = rho_l_end / omega_rho
-rho_g_end_dim = rho_g_end / omega_rho
-
 for i in range(n):
     # Condições iniciais de U
     u1, u2, u3 = compute_conservative_variables(vnp[i], nCl, nCg, nrho_l0, nP_l0, alphav[i], nrholv[i], nulv[i], nrhogv[i], nugv[i])
@@ -409,13 +391,20 @@ for i in range(n):
 #     # alpha, rho_l, rho_g, u_l, u_g, P = compute_primitive(*U[i, :])
 #     # print("alpha:",alpha)
 #     F[i, :] = compute_F1(alpha, rho_l, rho_g, u_l, u_g)
-    
+alpha_start, rho_l_start, rho_g_start, alpha_end, rho_l_end, rho_g_end, P_inlet, P_outlet = calculate_boundary_conditions(U[0, :], U[-1, :], nCl, nCg, nrho_l0, nP_l0, nmul, nmug, AREA, Lp, Lr)
+
+alpha_start_dim = alpha_start
+rho_l_start_dim = rho_l_start / omega_rho
+rho_g_start_dim = rho_g_start / omega_rho
+alpha_end_dim = alpha_end
+rho_l_end_dim = rho_l_end / omega_rho
+rho_g_end_dim = rho_g_end / omega_rho 
 # Simulação
 U_final, time_values, U1_values, U2_values, U3_values = simulate_pipeline(U, tol, n, nCg, nCl, nP_l0, nrho_l0, nPs, omega_c, omega_P, omega_rho, X, Z, mu_g, mu_l, eps, D_H, Lp, theta_0, delta_x, ntime, CFL, sigma, omega_u, AREA, G, alpha_start_dim, rho_l_start_dim, rho_g_start_dim, alpha_end_dim, rho_l_end_dim, rho_g_end_dim, nulv, nugv)
 
 # Plotando os resultados
 plt.figure(1)
-plt.plot(np.linspace(0, S, n), U_final[:, 0])
+plt.plot(np.linspace(0, nS, n), U_final[:, 0])
 plt.xlabel('Comprimento do tubo')
 plt.ylabel('Variável conservativa U1')
 plt.title('Distribuição de U1 ao longo do tubo')
@@ -423,7 +412,7 @@ plt.grid(True)
 plt.show()
     
 plt.figure(2)
-plt.plot(np.linspace(0, S, n), U_final[:, 1])
+plt.plot(np.linspace(0, nS, n), U_final[:, 1])
 plt.xlabel('Comprimento do tubo')
 plt.ylabel('Variável conservativa U2')
 plt.title('Distribuição de U2 ao longo do tubo')
@@ -431,13 +420,13 @@ plt.grid(True)
 plt.show()
     
 plt.figure(3)
-plt.plot(np.linspace(0, S, n), U_final[:, 2])
+plt.plot(np.linspace(0, nS, n), U_final[:, 2])
 plt.xlabel('Comprimento do tubo')
 plt.ylabel('Variável conservativa U3')
 plt.title('Distribuição de U3 ao longo do tubo')
 plt.grid(True)
 plt.show()
 
-plot_results(time_values, U1_values, 'U1')
-plot_results(time_values, U2_values, 'U2')
-plot_results(time_values, U3_values, 'U3')
+# plot_results(time_values, U1_values, 'U1')
+# plot_results(time_values, U2_values, 'U2')
+# plot_results(time_values, U3_values, 'U3')
