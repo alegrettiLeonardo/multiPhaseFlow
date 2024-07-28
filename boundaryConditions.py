@@ -1,5 +1,32 @@
 import math
 
+def calculate_boundary_conditions(U0, Un, nCl, nCg, nrho_l0, nP_l0, dot_M_l0, dot_M_g0, AREA, Lp, Lr):
+    # Condições de entrada (boundary conditions at inlet)
+    alpha_start = U0[1] / U0[0]
+    rho_l_start = (1 - alpha_start) * U0[0]
+    rho_g_start = alpha_start * U0[0]
+
+    # Velocidades específicas na entrada
+    u_l_start = dot_M_l0 / ((1 - alpha_start) * rho_l_start * AREA)
+    u_g_start = dot_M_g0 / (alpha_start * rho_g_start * AREA)
+
+    # Pressão na entrada (assumindo uma relação de estado linear)
+    P_inlet = U0[2] - 0.5 * (rho_l_start * u_l_start**2 + rho_g_start * u_g_start**2)
+
+    # Condições de saída (boundary conditions at outlet)
+    alpha_end = Un[1] / Un[0]
+    rho_l_end = (1 - alpha_end) * Un[0]
+    rho_g_end = alpha_end * Un[0]
+
+    # Velocidades específicas na saída
+    u_l_end = dot_M_l0 / ((1 - alpha_end) * rho_l_end * AREA)
+    u_g_end = dot_M_g0 / (alpha_end * rho_g_end * AREA)
+
+    # Pressão na saída (assumindo uma relação de estado linear)
+    P_outlet = Un[2] - 0.5 * (rho_l_end * u_l_end**2 + rho_g_end * u_g_end**2)
+
+    return alpha_start, rho_l_start, rho_g_start, alpha_end, rho_l_end, rho_g_end, P_inlet, P_outlet
+
 def calculate_primitive_variables(u1, u2, u3, Cl, Cg, rho_l0, P_l0):
     # Calculando alpha
     alpha0 = (u1 - rho_l0 + P_l0 / (Cl ** 2) + u2 * (Cg / Cl) ** 2) / (2 * (P_l0 / (Cl ** 2 - rho_l0)))
@@ -12,18 +39,18 @@ def calculate_primitive_variables(u1, u2, u3, Cl, Cg, rho_l0, P_l0):
     return alpha, P
 
 
-def calculate_boundary_conditions(u1, u2, u3, Cl, Cg, rho_l0, P_l0, dot_M_l0, dot_M_g0, A, L_p, L_r):
-    # Calculate primitive variables at the inlet and outlet
-    alpha_inlet, P_inlet = calculate_primitive_variables(u1, u2, u3, Cl, Cg, rho_l0, P_l0)
-    # jl_inlet = dot_M_l0 / (A * u1)
-    # jg_inlet = dot_M_g0 / (A * u2)
-    alpha_outlet, P_outlet = alpha_inlet, P_l0  # Assuming the outlet pressure is P_l0
+# def calculate_boundary_conditions(u1, u2, u3, Cl, Cg, rho_l0, P_l0, dot_M_l0, dot_M_g0, A, L_p, L_r):
+#     # Calculate primitive variables at the inlet and outlet
+#     alpha_inlet, P_inlet = calculate_primitive_variables(u1, u2, u3, Cl, Cg, rho_l0, P_l0)
+#     # jl_inlet = dot_M_l0 / (A * u1)
+#     # jg_inlet = dot_M_g0 / (A * u2)
+#     alpha_outlet, P_outlet = alpha_inlet, P_l0  # Assuming the outlet pressure is P_l0
     
-    # Calculate conservative variables in the real cells
-    alpha_start, rho_l_start, rho_g_start = alpha_inlet, (u1 - alpha_inlet) * (1 / (1 - alpha_inlet)), u2 * (1 / alpha_inlet)
-    alpha_end, rho_l_end, rho_g_end = alpha_outlet, (u1 - alpha_outlet) * (1 / (1 - alpha_outlet)), u2 * (1 / alpha_outlet)
+#     # Calculate conservative variables in the real cells
+#     alpha_start, rho_l_start, rho_g_start = alpha_inlet, (u1 - alpha_inlet) * (1 / (1 - alpha_inlet)), u2 * (1 / alpha_inlet)
+#     alpha_end, rho_l_end, rho_g_end = alpha_outlet, (u1 - alpha_outlet) * (1 / (1 - alpha_outlet)), u2 * (1 / alpha_outlet)
     
-    return alpha_start, rho_l_start, rho_g_start, alpha_end, rho_l_end, rho_g_end, P_inlet, P_outlet#, jl_inlet, jg_inlet
+#     return alpha_start, rho_l_start, rho_g_start, alpha_end, rho_l_end, rho_g_end, P_inlet, P_outlet#, jl_inlet, jg_inlet
 
 
 # def calculate_boundary_conditions(u1, u2, u3, theta, Cg, Cl, rho_l0, P_l0, AREA, dot_M_l0, dot_M_g0, L_p, L_r, D, EPS, G, MUL, MUG, sigma, w_u, w_rho, tol, tola, maxit):

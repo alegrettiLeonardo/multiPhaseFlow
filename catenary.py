@@ -56,7 +56,7 @@ def catenary_constant(x, z, tol):
     if x == 0:
         A = 0
     
-    A_min = -np.sqrt(x**2 + z**2)
+    A_min = -math.sqrt(x**2 + z**2)
     fv_min = catenaryf(x, z, A_min)
     
     # Verificação adicional para evitar divisão por zero
@@ -84,7 +84,25 @@ def catenary_constant(x, z, tol):
     A = (A_max + A_min) / 2.0
     return A
 
-
+def compute_catenary(s, z, Lp, theta_0):
+    tol = 1e-15
+    # Adicionar verificação para s ser zero
+    if s == 0:
+        return -theta_0 * (math.pi / 180)  # Convertendo -theta_0 graus para radianos
+    
+    A = catenary_constant(s, z, tol)
+    LR = A * math.sinh(s / A)
+    VPARAM = np.array([A, LR])
+    
+    if s < Lp:
+        return -theta_0 * (math.pi / 180)  # Convertendo -theta_0 graus para radianos
+    elif s == Lp:
+        return 0  # 0 graus é 0 radianos
+    else:
+        theta_graus = Dfungeo(s, VPARAM)
+        theta_radianos = theta_graus * (math.pi / 180)
+        return theta_radianos 
+    
 # This script tests the code to obtain the catenary constant. Use data from
 # Wordsworth e al 1998.
 #
