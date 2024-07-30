@@ -183,6 +183,7 @@ def simulate_pipeline(U, tol, n, nCg, nCl, nP_l0, nrho_l0, nPs, omega_c, omega_P
             source_term = compute_source_term_vector(U[i], alpha_i, rho_m_i, sin_theta_i, f_m_i, j_i)
             source_term_values.append(source_term)
             residuals[i, :] += source_term
+        
         apply_boundary_conditions(U, alpha_start_dim, P_i, rho_l_start_dim, njl, njg, alpha_end_dim, nPs, AREA, nCg, nCl, nrho_l0, nP_l0, tol)
         delta_t_min = min(delta_time_values)
         for i in range(n - 1):
@@ -276,14 +277,14 @@ for i in range(n):
     U[i, 0] = u1
     U[i, 1] = u2
     U[i, 2] = u3
-alpha_start, rho_l_start, rho_g_start, alpha_end, rho_l_end, rho_g_end, P_inlet, P_outlet = boundaryConditions.calculate_boundary_conditions(U[0, :], U[-1, :], nCl, nCg, nrho_l0, nP_l0, nmul, nmug, AREA, Lp, Lr)
+#alpha_start, rho_l_start, rho_g_start, alpha_end, rho_l_end, rho_g_end, P_inlet, P_outlet = boundaryConditions.calculate_boundary_conditions(U[0, :], U[-1, :], nCl, nCg, nrho_l0, nP_l0, nmul, nmug, AREA, Lp, Lr)
 
-alpha_start_dim = alpha_start
-rho_l_start_dim = rho_l_start / omega_rho
-rho_g_start_dim = rho_g_start / omega_rho
-alpha_end_dim = alpha_end
-rho_l_end_dim = rho_l_end / omega_rho
-rho_g_end_dim = rho_g_end / omega_rho 
+alpha_start_dim = alphav[0]
+rho_l_start_dim = nrholv[0] / omega_rho
+rho_g_start_dim = nrhogv[0] / omega_rho
+alpha_end_dim = alphav[-1]
+rho_l_end_dim = nrholv[-1] / omega_rho
+rho_g_end_dim = nrhogv[-1] / omega_rho 
 # Simulação
 U_final, time_values, U_values = simulate_pipeline(U, tol, n, nCg, nCl, nP_l0, nrho_l0, nPs, omega_c, omega_P, omega_rho, X, Z, mu_g, mu_l, eps, D, Lp, theta_0, delta_x, ntime, CFL, sigma, omega_u, AREA, G, alpha_start_dim, rho_l_start_dim, rho_g_start_dim, alpha_end_dim, rho_l_end_dim, rho_g_end_dim, nulv, nugv, njl, njg)
 
