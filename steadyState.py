@@ -94,14 +94,65 @@ def fun_or_geo(s, Lp, beta, CA):
     return theta
 
 # Função para resolver o estado estacionário
+# def EstadoEstacionario_ndim_simp(N, mul, mug, Ps, Lp, Lr, CA, beta, DH, AREA, EPS, G, Cl, Cg, rho_l0, P_l0, MUL, MUG, sigma, w_p, w_u, w_rho, tol):
+#     # Discretização do sistema oleoduto riser com Lr como escala de comprimento
+#     ds = ((Lp + Lr) / Lr) / (N - 1)
+#     # tspan = [(Lp + Lr) / Lr - i * ds for i in range(N)][::-1]
+#     tspan = np.linspace((Lp + Lr) / Lr, 0, N)
+#     # Defina as opções de controle do integrador solve_ivp
+#     options = {
+#         'method': 'LSODA', # Método de integração (pode ser 'BDF', 'DOP853', 'LSODA')
+#         'rtol': 100 * tol,
+#         'atol': tol,
+#         'max_step': ds,
+#         'first_step': ds / 10000.0,  # Ajuste o valor inicial do passo conforme necessário
+#     }
+        
+#     # Integração da pressão do topo do riser até o início do oleoduto
+#     sol = solve_ivp(lambda s, p: fun_dpds(s, p, mul, mug, Lp, Lr, CA, beta, DH, AREA, EPS, G, Cl, Cg, rho_l0, P_l0, MUL, MUG, sigma, w_p, w_u, w_rho, tol),
+#                    [tspan[0], tspan[-1]], [Ps], t_eval=tspan, **options)
+#     #sol = solve_ivp(fun_dpds, [tspan[0], tspan[-1]], [Ps], args=(mul, mug, Lp, Lr, CA, beta, DH, AREA, EPS, G, Cl, Cg, rho_l0, P_l0, MUL, MUG, sigma, w_p, w_u, w_rho, tol), t_eval=tspan, **options)
+    
+#     if not sol.success:
+#         raise RuntimeError(f"Integration failed: {sol.message}")
+
+#     # Inverter os vetores de saída para corresponder ao MATLAB
+#     vns = sol.t[::-1]
+#     vnp = sol.y[0][::-1]
+    
+#     # Determinar densidades do gás e do líquido, velocidades superficiais, fração de vazio e velocidades do líquido e gás
+#     nrhogv = np.zeros(N)
+#     nrholv = np.zeros(N)
+#     alphav = np.zeros(N)
+#     nugv = np.zeros(N)
+#     nulv = np.zeros(N)
+#     thetav = np.zeros(N)
+#     for i in range(N):
+#         nrhogv[i] = vnp[i] / (Cg ** 2)
+#         nrholv[i] = (rho_l0 + (vnp[i] - P_l0) / (Cl ** 2))
+#         njg = mug / nrhogv[i]
+#         njl = mul / nrholv[i]
+#         theta = fun_or_geo(vns[i] * Lr, Lp, beta, CA)
+#         thetav[i] = theta
+#         if theta <= 0:
+#             alphav[i] = voidFraction.FracaoVazio_comp(njl, njg, nrhogv[i], nrholv[i], -theta, DH, AREA, EPS, G, MUL, MUG, w_u, w_rho, tol)
+#         else:
+#             alphav[i], Cd, Ud = voidFraction.FracaoVazio_swananda_ndim(njl, njg, nrhogv[i], nrholv[i], theta, DH, AREA, EPS, G, MUL, MUG, sigma, w_u, w_rho, tol)
+            
+#         nugv[i] = njg / alphav[i]
+#         nulv[i] = njl / (1 - alphav[i])
+
+#     return vns, vnp, nrhogv, nrholv, alphav, nugv, nulv, thetav
+# Função para resolver o estado estacionário
 def EstadoEstacionario_ndim_simp(N, mul, mug, Ps, Lp, Lr, CA, beta, DH, AREA, EPS, G, Cl, Cg, rho_l0, P_l0, MUL, MUG, sigma, w_p, w_u, w_rho, tol):
     # Discretização do sistema oleoduto riser com Lr como escala de comprimento
     ds = ((Lp + Lr) / Lr) / (N - 1)
-    # tspan = [(Lp + Lr) / Lr - i * ds for i in range(N)][::-1]
     tspan = np.linspace((Lp + Lr) / Lr, 0, N)
+    #tspan = [(Lp + Lr) / Lr - (i-1) * ds for i in range(N)][::-1]
+    
     # Defina as opções de controle do integrador solve_ivp
     options = {
-        'method': 'LSODA', # Método de integração (pode ser 'BDF', 'DOP853', 'LSODA')
+        'method': 'BDF', # Método de integração (pode ser 'BDF', 'DOP853', 'LSODA')
         'rtol': 100 * tol,
         'atol': tol,
         'max_step': ds,
@@ -111,15 +162,14 @@ def EstadoEstacionario_ndim_simp(N, mul, mug, Ps, Lp, Lr, CA, beta, DH, AREA, EP
     # Integração da pressão do topo do riser até o início do oleoduto
     sol = solve_ivp(lambda s, p: fun_dpds(s, p, mul, mug, Lp, Lr, CA, beta, DH, AREA, EPS, G, Cl, Cg, rho_l0, P_l0, MUL, MUG, sigma, w_p, w_u, w_rho, tol),
                    [tspan[0], tspan[-1]], [Ps], t_eval=tspan, **options)
-    #sol = solve_ivp(fun_dpds, [tspan[0], tspan[-1]], [Ps], args=(mul, mug, Lp, Lr, CA, beta, DH, AREA, EPS, G, Cl, Cg, rho_l0, P_l0, MUL, MUG, sigma, w_p, w_u, w_rho, tol), t_eval=tspan, **options)
     
     if not sol.success:
         raise RuntimeError(f"Integration failed: {sol.message}")
 
     # Inverter os vetores de saída para corresponder ao MATLAB
     vns = sol.t[::-1]
-    vnp = sol.y[0][::-1]
-    
+    vnp = sol.y[0]#[::-1]
+    # print(f"nS: {vns[:]}, \n nP: {vnp[:]}")
     # Determinar densidades do gás e do líquido, velocidades superficiais, fração de vazio e velocidades do líquido e gás
     nrhogv = np.zeros(N)
     nrholv = np.zeros(N)
@@ -130,6 +180,7 @@ def EstadoEstacionario_ndim_simp(N, mul, mug, Ps, Lp, Lr, CA, beta, DH, AREA, EP
     for i in range(N):
         nrhogv[i] = vnp[i] / (Cg ** 2)
         nrholv[i] = (rho_l0 + (vnp[i] - P_l0) / (Cl ** 2))
+        #print(f"Step {i} - rhog: {nrhogv[i]}, rhol: {nrholv[i]}")
         njg = mug / nrhogv[i]
         njl = mul / nrholv[i]
         theta = fun_or_geo(vns[i] * Lr, Lp, beta, CA)
@@ -143,7 +194,6 @@ def EstadoEstacionario_ndim_simp(N, mul, mug, Ps, Lp, Lr, CA, beta, DH, AREA, EP
         nulv[i] = njl / (1 - alphav[i])
 
     return vns, vnp, nrhogv, nrholv, alphav, nugv, nulv, thetav
-
 # Exemplo de chamada da função (valores fictícios)
 # N = 1000
 # mul = 1.0
