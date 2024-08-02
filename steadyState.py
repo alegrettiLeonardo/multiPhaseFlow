@@ -97,8 +97,8 @@ def fun_or_geo(s, Lp, beta, CA):
 def EstadoEstacionario_ndim_simp(N, mul, mug, Ps, Lp, Lr, CA, beta, DH, AREA, EPS, G, Cl, Cg, rho_l0, P_l0, MUL, MUG, sigma, w_p, w_u, w_rho, tol):
     # Discretização do sistema oleoduto riser com Lr como escala de comprimento
     ds = ((Lp + Lr) / Lr) / (N - 1)
-    tspan = np.linspace(0, (Lp + Lr) / Lr, N)
-
+    # tspan = [(Lp + Lr) / Lr - i * ds for i in range(N)][::-1]
+    tspan = np.linspace((Lp + Lr) / Lr, 0, N)
     # Defina as opções de controle do integrador solve_ivp
     options = {
         'method': 'LSODA', # Método de integração (pode ser 'BDF', 'DOP853', 'LSODA')
@@ -109,8 +109,9 @@ def EstadoEstacionario_ndim_simp(N, mul, mug, Ps, Lp, Lr, CA, beta, DH, AREA, EP
     }
         
     # Integração da pressão do topo do riser até o início do oleoduto
-    # sol = solve_ivp(fun_dpds_wrapper, [tspan[0], tspan[-1]], [Ps], **options)
-    sol = solve_ivp(fun_dpds, [tspan[0], tspan[-1]], [Ps], args=(mul, mug, Lp, Lr, CA, beta, DH, AREA, EPS, G, Cl, Cg, rho_l0, P_l0, MUL, MUG, sigma, w_p, w_u, w_rho, tol), t_eval=tspan, **options)
+    sol = solve_ivp(lambda s, p: fun_dpds(s, p, mul, mug, Lp, Lr, CA, beta, DH, AREA, EPS, G, Cl, Cg, rho_l0, P_l0, MUL, MUG, sigma, w_p, w_u, w_rho, tol),
+                   [tspan[0], tspan[-1]], [Ps], t_eval=tspan, **options)
+    #sol = solve_ivp(fun_dpds, [tspan[0], tspan[-1]], [Ps], args=(mul, mug, Lp, Lr, CA, beta, DH, AREA, EPS, G, Cl, Cg, rho_l0, P_l0, MUL, MUG, sigma, w_p, w_u, w_rho, tol), t_eval=tspan, **options)
     
     if not sol.success:
         raise RuntimeError(f"Integration failed: {sol.message}")
