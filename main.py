@@ -8,15 +8,6 @@ import steadyState
 import boundaryConditions
 import matplotlib.pyplot as plt
 
-# def apply_boundary_conditions(U, alpha_start_dim, rho_l_start_dim, rho_g_start_dim, nulv_start, nugv_start, alpha_end_dim, rho_l_end_dim, rho_g_end_dim, nulv_end, nugv_end):
-#     # Condição de contorno na entrada
-#     u1_start, u2_start, u3_start = compute_conservative_variables(nPs, nCl, nCg, nrho_l0, nP_l0, alpha_start_dim, rho_l_start_dim, nulv_start, rho_g_start_dim, nugv_start)
-#     U[0, :] = [u1_start, u2_start, u3_start]
-
-#     # Condição de contorno na saída
-#     u1_end, u2_end, u3_end = compute_conservative_variables(nPs, nCl, nCg, nrho_l0, nP_l0, alpha_end_dim, rho_l_end_dim, nulv_end, rho_g_end_dim, nugv_end)
-#     U[-1, :] = [u1_end, u2_end, u3_end]
-
 def apply_boundary_conditions(U, alpha_in, P_in, rho_l_in, u_l_in, u_g_in, alpha_out, P_separator, A, nCg, nCl, rho_l0, P_l0, tol):
     """
     Apply boundary conditions at the pipeline entrance and riser top.
@@ -33,22 +24,12 @@ def apply_boundary_conditions(U, alpha_in, P_in, rho_l_in, u_l_in, u_g_in, alpha
         P_l0 (float): Reference pressure.
         tol (float): Tolerance for convergence.
     """
-    # Boundary condition at the entrance
-    # rho_l_in = m_dot_l0 / A
-    # u_l_in = m_dot_l0 / (rho_l_in * A)
-    # u_g_in = m_dot_g0 / (P_separator / (nCg ** 2) * A)
-
-    # alpha_in = find.alpha_fun_mass_flow(m_dot_l0, m_dot_g0, u_l_in, u_g_in, nCl, nCg, rho_l0, P_l0, tol)
-    # P_in = find.pressure_fun_mass_flow(m_dot_l0, m_dot_g0, u_l_in, u_g_in, nCl, nCg, rho_l0, P_l0)
-
+    # inlet
     U[0, 0] = (1 - alpha_in) * (rho_l0 + (P_in - P_l0) / nCl)
     U[0, 1] = alpha_in * P_in / (nCg ** 2)
     U[0, 2] = (1 - alpha_in) * rho_l_in * u_l_in + alpha_in * (P_separator / (nCg ** 2)) * u_g_in
-
-    # Boundary condition at the riser top
-    # alpha_out = find.alpha_fun_mass_flow(m_dot_l0, m_dot_g0, u_l_in, u_g_in, nCl, nCg, rho_l0, P_l0, tol)
-    # P_out = P_separator
-
+    
+    # outlet
     U[-1, 0] = (1 - alpha_out) * (rho_l0 + (P_separator - P_l0) / nCl)
     U[-1, 1] = alpha_out * P_separator / (nCg ** 2)
     U[-1, 2] = (1 - alpha_out) * rho_l_in * u_l_in + alpha_out * (P_separator / (nCg ** 2)) * u_g_in
@@ -149,7 +130,7 @@ def calculate_residuals(U, U_new):
 def simulate_pipeline(U, tol, n, nCg, nCl, nP_l0, nrho_l0, nPs, omega_c, omega_P, omega_rho, X, Z, mu_g, mu_l, eps, D_H, Lp, theta_0, delta_x, T, CFL, sigma, omega_u, AREA, G, alpha_start_dim, rho_l_start_dim, rho_g_start_dim, alpha_end_dim, rho_l_end_dim, rho_g_end_dim, nulv, nugv, njl, njg):
     # n = U.shape[0]
     time = 0
-    delta_t_min = 1e-2
+    delta_t_min = 1e-3
     residuals = np.zeros((n, 3))
     U_new = U.copy()
     # Armazenar valores ao longo do tempo
@@ -158,10 +139,11 @@ def simulate_pipeline(U, tol, n, nCg, nCl, nP_l0, nrho_l0, nPs, omega_c, omega_P
     source_term_values = []
     time_values = []
     U_values = []
+    CA = catenary.catenary_constant(X, Z, tol)
     while time < T:
         # apply_boundary_conditions(U, alpha_start_dim, rho_l_start_dim, rho_g_start_dim, nulv[0], nugv[0], alpha_end_dim, rho_l_end_dim, rho_g_end_dim, nulv[-1], nugv[-1])
         for i in range(n - 1):
-            theta = catenary.compute_catenary(i * delta_x, Z, Lp, theta_0)
+            theta = catenary.fun_or_geo(i * delta_x, Lp, theta_0, CA)#catenary.compute_catenary(i * delta_x, Z, Lp, theta_0)
             alpha_i, rho_l_i, rho_g_i, P_i, u_l_i, u_g_i, index = compute_primitive_variables(U[i,0], U[i,1], U[i,2], theta, nCg, nCl, nrho_l0, nP_l0, D_H, AREA, eps, G, mu_l, mu_g, sigma, omega_u, omega_rho, tol, tola, n)
             alpha_ip1, rho_l_ip1, rho_g_ip1, P_ip1, u_l_ip1, u_g_ip1, index = compute_primitive_variables(U[i+1,0], U[i+1,1], U[i+1,2], theta, nCg, nCl, nrho_l0, nP_l0, D_H, AREA, eps, G, mu_l, mu_g, sigma, omega_u, omega_rho, tol, tola, n)
             
@@ -221,22 +203,22 @@ def plot_results(time_values, U_values, label):
     plt.show()
     
 # Parâmetros de entrada e condições iniciais
-n = 101                         # número de pontos da malha
-X = 6.435                       # comprimento do tubo
+n = 201                          # número de pontos da malha
+X = 6.435                       # comprimento do riser
 Z = 9.886                       # altura do tubo
-Lp = 10.0                       # comprimento da porção inclinada
-theta_0 = 5.0                   # ângulo inicial em graus
+Lp = 10.0                       # comprimento do oleoduto
+theta_0 = 2.0                   # ângulo inicial em graus
 Cg = 343.0                      # velocidade do som no gás
 Cl = 1498.0                     # velocidade do som no líquido
 P_l0 = 101325.0                 # pressão de referência
 rho_l0 = 998.0                  # densidade do líquido de referência
 rho_g0 = 1.2                    # densidade do gás de referência
-Ps = 1.5*101325.0               # pressão no tubo
+Ps = 2.0*P_l0                   # pressão no tubo
 mu_g = 1.81e-5                  # viscosidade do gás
 mu_l = 1e-3                     # viscosidade do líquido
 eps = 4.6e-5                    # rugosidade
 D = 0.0254                      # diâmetro
-time = 0.002                    # tempo total de simulação
+time = 0.02                     # tempo total de simulação
 CFL = 0.9                       # número de Courant-Friedrichs-Lewy
 tol = 1e-15
 tola = tol * 100
@@ -245,7 +227,6 @@ sigma = 7.28e-2
 G = 9.81
 jl = 6.0
 jg = 1.0
-
 
 # Parâmetro da catenária
 CA = catenary.catenary_constant(X, Z, tol)
