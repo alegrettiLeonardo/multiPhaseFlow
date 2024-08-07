@@ -600,47 +600,29 @@ def drift_flux_swananda_ndim(ul, ug, rhol, rhog, alpha, theta, D, AREA, EPS, G, 
 
     return value
 
-def drift_flux_swananda(ul, ug, rhol, rhog, alpha, theta, D, AREA, EPS, G, MUL, MUG, sigma, w_u, w_rho, tol):
+def drift_flux_swananda_ndim(ul, ug, rhol, rhog, alpha, theta, D, AREA, EPS, G, MUL, MUG, sigma, w_u, w_rho, tol):
    """
-   Avalia a relação de deslizamento com parâmetros Cd e Ud dados pela correlação de swananda.
+   Avalia a relação de deslizamento com parâmetros Cd e Ud dados pela correlação
+   de swanada na forma adimensional.
 
-   Parâmetros:
-   ul: Velocidade adimensional do líquido em um ponto do pipe
-   ug: Velocidade adimensional do gás em um ponto do pipe
-   rhol: Densidade adimensional do líquido
-   rhog: Densidade adimensional do gás
-   alpha: Fração de vazio em um ponto do pipe
-   theta: Ângulo de inclinação do pipe (positivo upward e negativo downward)
-   AREA: Área seccional da tubulação do pipeline e riser
-   D: Diâmetro da tubulação
-   EPS: Rugosidade do tubo do pipeline
-   G: Aceleração da gravidade
-   MUL: Viscosidade dinâmica do líquido
-   MUG: Viscosidade dinâmica do gás
-   sigma: Tensão superficial líquido-gás
-   w_u: Escala de velocidade
-   w_rho: Escala de densidade
-   tol: Tolerância numérica
-
-   Retorna:
-   value: Valor da relação de deriva
+   ul: velocidade adimensional do líquido em um ponto do pipe;
+   ug: velocidade adimensional do gás em um ponto do pipe;
+   rhol: densidade adimensional do líquido;
+   rhog: densidade adimensional do gás;
+   alpha: fração de vazio em um ponto do pipe;
+   theta: ângulo de inclinação do pipe (positivo upward e negativo downward);
+   AREA: área seccional da tubulação do pipeline e riser;
+   D: diâmetro da tubulação;
+   EPS: rugosidade do tubo do pipeline;
+   G: aceleração da gravidade;
+   MUL: viscosidade dinâmica do líquido;
+   MUG: viscosidade dinâmica do gás;
+   sigma: tensão superficial líquido-gás;
+   w_u: escala de velocidade;
+   w_rho: escala de densidade;
+   tol: tolerância numérica.
    """
-   # Vazão volumétrica dimensional de líquido
-   q = ul * (1 - alpha) * AREA * w_u  # m³/s
-
-   # Vazão dimensional de massa de gás
-   m = ug * alpha * AREA * rhog * w_u * w_rho  # kg/s
-
-   # Densidades do líquido e gás
-   ROL = rhol * w_rho
-   ROG = rhog * w_rho
-
-   # Velocidades superficiais dimensionais
-   jl = ul * (1 - alpha) * w_u
-   jg = ug * alpha * w_u
-
-   # Obter Cd e Ud usando a função cdud_swanand_v3k
-   Cd, Ud = cdud_swanand_v3k(alpha, jl, jg, ROG, ROL, MUL, D, theta, EPS, q, m, sigma, G, tol)
+   Cd, Ud = CdUd_swananda(alpha, rhol, rhog, ul, ug, theta, D, AREA, EPS, G, MUL, MUG, sigma, w_u, w_rho, tol)
 
    # Relação de deriva
    njl = ul * (1 - alpha)
@@ -648,8 +630,6 @@ def drift_flux_swananda(ul, ug, rhol, rhog, alpha, theta, D, AREA, EPS, G, MUL, 
    nUd = Ud / w_u
 
    value = -njg + alpha * (Cd * (njl + njg) + nUd)
-   # value = alpha - njg / (Cd * (njl + njg) + nUd)
-
    return value
 
 def RelEquilLocalPipe_comp(ul, ug, rhol, rhog, ALPHA, BETA, D, AREA, EPS, G, MUL, MUG, w_u, w_rho, tol):
@@ -760,80 +740,6 @@ def Ddrift_flux_swananda_ndim(alpha, rhol, rhog, ul, ug, theta, DH, AREA, EPS, G
 
     return dfda, dfdrhog, dfdrhol, dfdug, dfdul
 
-# def RelEquilLocalPipe_comp(ul, ug, rhol, rhog, ALPHA, BETA, D, AREA, EPS, G, MUL, MUG, w_u, w_rho, tol):
-#    """
-#    Calcula o valor da relação de equilíbrio local adimensional.
-
-#    Parâmetros:
-#    ul: Velocidade adimensional do líquido em um ponto do pipe
-#    ug: Velocidade adimensional do gás em um ponto do pipe
-#    rhol: Densidade adimensional do líquido
-#    rhog: Densidade adimensional do gás
-#    ALPHA: Fração de vazio em um ponto do pipe
-#    BETA: Ângulo de inclinação do pipe
-#    AREA: Área seccional da tubulação do pipeline e riser
-#    D: Diâmetro da tubulação
-#    EPS: Rugosidade do tubo do pipeline
-#    G: Aceleração da gravidade
-#    MUL: Viscosidade dinâmica do líquido
-#    MUG: Viscosidade dinâmica do gás
-#    w_u: Escala de velocidade
-#    w_rho: Escala de densidade
-#    tol: Tolerância numérica
-
-#    Retorna:
-#    fun: Valor da relação de equilíbrio local adimensional
-#    """
-#    PID = (D * G) / (4 * (w_u ** 2))
-#    gamma = voidFraction.alpha2gamma(ALPHA, tol)
-#    gammai = math.sin(math.pi * gamma) / math.pi
-
-#    # Número de Reynolds para o líquido
-#    Rel = ((w_rho * w_u * D) / MUL) * rhol * abs((1 - ALPHA) * ul) / gamma
-
-#    # Número de Reynolds para o gás
-#    Reg = ((w_u * w_rho * D) / MUG) * rhog * abs(ALPHA * ug) / (1.0 - gamma + gammai)
-
-#    # Perímetros molhados
-#    Sl = math.pi * D * gamma
-#    Sg = math.pi * D * (1.0 - gamma)
-#    Si = math.pi * D * gammai
-
-#    # Diâmetros hidráulicos
-#    Dl = 4.0 * (1.0 - ALPHA) * AREA / Sl
-#    Dg = 4.0 * ALPHA * AREA / (Sg + Si)
-
-#    # Fatores de atrito
-#    if Rel >= tol:
-#        fl = voidFraction.ffan(EPS / Dl, Rel)
-#    else:
-#        fl = 0
-
-#    if Reg >= tol:
-#        fg = voidFraction.ffan(EPS / Dg, Reg)
-#    else:
-#        fg = 0
-
-#    fi = 0.0142  # mesmo que utilizado em fungamma.m
-
-#    # Cálculo de ui
-#    if Rel < 2000:
-#        ui = 1.8 * ul
-#    elif Rel > 2200:
-#        ui = ul
-#    else:
-#        ui = ul * (1.8 * (2200 - Rel) + (Rel - 2000)) / 200
-
-#    # Cálculo da relação de equilíbrio local
-#    auxa = fg * rhog * ug * abs(ug) * (1 - gamma) / ALPHA
-#    auxb = rhol * fl * ul * abs(ul) * gamma / (1.0 - ALPHA)
-#    auxc = fi * rhog * (ug - ui) * abs(ug - ui) * (gammai / (ALPHA * (1.0 - ALPHA)))
-#    auxd = PID * (rhol - rhog) * math.sin(BETA)
-
-#    fun = auxa / 2 - auxb / 2 + auxc / 2 + auxd
-
-#    return fun
-
 
 def DRelEquiLocal_pipe_comp(alpha,rhol,rhog,ul,ug,theta,D,AREA,EPS,G,MUL,MUG,sigma,w_u,w_rho,tol):
     #
@@ -856,259 +762,259 @@ def DRelEquiLocal_pipe_comp(alpha,rhol,rhog,ul,ug,theta,D,AREA,EPS,G,MUL,MUG,sig
     # w_rho: escala de densidade;
     # tol: numerical tolerance.
     #
-    PID = (D*G)/(4*(w_u**2));
+    PID = (D*G)/(4*(w_u**2))
     
-    gamma = voidFraction.alpha2gamma(alpha,tol);
+    gamma = voidFraction.alpha2gamma(alpha,tol)
     
-    gammai = np.sin(np.pi*gamma)/np.pi;
+    gammai = np.sin(np.pi*gamma)/np.pi
     
     # # Reynolds para o líquido
-    Rel = ((w_rho*w_u*D)/MUL)*rhol*abs((1-alpha)*ul)/gamma;
+    Rel = ((w_rho*w_u*D)/MUL)*rhol*abs((1-alpha)*ul)/gamma
     
     # # Reynolds para o gás
-    Reg = ((w_u*w_rho*D)/MUG)*rhog*abs(alpha*ug)/(1.0-gamma+gammai);
+    Reg = ((w_u*w_rho*D)/MUG)*rhog*abs(alpha*ug)/(1.0-gamma+gammai)
     
     # perimetros molhados
     
-    Sl = np.pi*D*gamma;
-    Sg = np.pi*D*(1.0-gamma);
-    Si = np.pi*D*gammai;
+    Sl = np.pi*D*gamma
+    Sg = np.pi*D*(1.0-gamma)
+    Si = np.pi*D*gammai
     
     # Diâmetros hidraulicos
     
-    Dl = 4.0*(1.0-alpha)*AREA/Sl;
-    Dg = 4.0*alpha*AREA/(Sg+Si);
+    Dl = 4.0*(1.0-alpha)*AREA/Sl
+    Dg = 4.0*alpha*AREA/(Sg+Si)
     
     # fatores de atrito
     
-    fl = voidFraction.ffan(EPS/Dl,Rel);
-    fg = voidFraction.ffan(EPS/Dg,Reg);
+    fl = voidFraction.ffan(EPS/Dl,Rel)
+    fg = voidFraction.ffan(EPS/Dg,Reg)
     fi = 0.0142;           # mesmo que utilizado em fungamma.m
     
     # calculo de ui
     if Rel < 2000:
-      ui = 1.8*ul;
+      ui = 1.8*ul
     elif Rel > 2200:
-      ui = ul;
+      ui = ul
     else:
-      ui = ul * (1.8*(2200-Rel) + (Rel-2000) )/200;
+      ui = ul * (1.8*(2200-Rel) + (Rel-2000) )/200
     
     # derivada das quantidades de interesse
     
-    dgammada = 1.0/(np.cos(2*gamma*np.pi)-1.0);
+    dgammada = 1.0/(np.cos(2*gamma*np.pi)-1.0)
     
-    dgammaida = np.cos(gamma*np.pi)*dgammada;
+    dgammaida = np.cos(gamma*np.pi)*dgammada
     
-    dDlda = -D/gamma-((1-alpha)*D*dgammada)/(gamma**2);
+    dDlda = -D/gamma-((1-alpha)*D*dgammada)/(gamma**2)
     
-    dDgda = D/(1 - gamma + gammai) - ((alpha*D)/((1 - gamma + gammai)**2))*(-dgammada + dgammaida);
+    dDgda = D/(1 - gamma + gammai) - ((alpha*D)/((1 - gamma + gammai)**2))*(-dgammada + dgammaida)
     
     # derivadas do fator de atrito para o líquido
-    dfldrel,dfldepsl = voidFraction.Dffan(Rel,EPS/Dl);
+    dfldrel,dfldepsl = voidFraction.Dffan(Rel,EPS/Dl)
     
     # derivadas do fator de atrito para o gas
-    dfgdreg,dfgdepsg = voidFraction.Dffan(Reg,EPS/Dg);
+    dfgdreg,dfgdepsg = voidFraction.Dffan(Reg,EPS/Dg)
     
     # derivadas do numero de Reynolds do liquido
     #
     # em relação a alpha
-    t3 = (w_rho * w_u * D * rhol);
-    t5 = (alpha - 1) * ul;
+    t3 = (w_rho * w_u * D * rhol)
+    t5 = (alpha - 1) * ul
     #t6 = abs(1, t5);
     if t5 >= 0:
-      t6 = 1.0;
+      t6 = 1.0
     else:
-      t6 = -1.0;
+      t6 = -1.0
 
-    t8 = 1 / MUL;
-    t9 = gamma;
-    t14 = abs(t5);
-    t16 = (t9**2);
-    t18 = dgammada;
-    drelda = 1 / t9 * t8 * t6 * ul * t3 - t18 / t16 * t8 * t14 * t3;
+    t8 = 1 / MUL
+    t9 = gamma
+    t14 = abs(t5)
+    t16 = (t9**2)
+    t18 = dgammada
+    drelda = 1 / t9 * t8 * t6 * ul * t3 - t18 / t16 * t8 * t14 * t3
     
     # em relação a rhol
-    t5 = abs((alpha - 1) * ul);
-    t8 = gamma;
-    dreldrhol = 1 / t8 / MUL * t5 * w_rho * w_u * D;
+    t5 = abs((alpha - 1) * ul)
+    t8 = gamma
+    dreldrhol = 1 / t8 / MUL * t5 * w_rho * w_u * D
     
     # em relação a ul
-    t4 = alpha - 1;
+    t4 = alpha - 1
     #t6 = abs(1, ul * t4);
     if ul*t4 >= 0:
-      t6 = 1.0;
+      t6 = 1.0
     else:
-      t6 = -1.0;
-    t9 = gamma;
-    dreldul = 1 / t9 / MUL * t6 * t4 * w_rho * w_u * D * rhol;
+      t6 = -1.0
+    t9 = gamma
+    dreldul = 1 / t9 / MUL * t6 * t4 * w_rho * w_u * D * rhol
     
     # derivadas do numero de Reynolds do gas 
     #
     # em relação a alpha
-    t3 = (w_rho * w_u * D * rhog);
-    t4 = (alpha * ug);
+    t3 = (w_rho * w_u * D * rhog)
+    t4 = (alpha * ug)
     #t5 = abs(1, t4);
     if t4 >= 0:
-      t5 = 1.0;
+      t5 = 1.0
     else:
-      t5 = -1.0;
-    t7 = 1 / MUG;
-    t8 = gamma;
-    t9 = gammai;
-    t10 = 1 - t8 + t9;
-    t15 = abs(t4);
-    t17 = t10 ** 2;
-    t19 = dgammada;
-    t20 = dgammaida;
+      t5 = -1.0
+    t7 = 1 / MUG
+    t8 = gamma
+    t9 = gammai
+    t10 = 1 - t8 + t9
+    t15 = abs(t4)
+    t17 = t10 ** 2
+    t19 = dgammada
+    t20 = dgammaida
     dregda = 1 / t10 * t7 * t5 * ug * t3 - (-t19 + t20) / t17 * t7 * t15 * t3;
     
     # em relação a rhog
-    t4 = abs(alpha * ug);
-    t7 = gamma;
-    t8 = gammai;
+    t4 = abs(alpha * ug)
+    t7 = gamma
+    t8 = gammai
     dregdrhog = 1 / (1 - t7 + t8) / MUG * t4 * w_rho * w_u * D;
     
     # em relação a ug
     #t5 = abs(1, alpha * ug);
     if alpha*ug >= 0:
-      t5 = 1.0;
+      t5 = 1.0
     else:
-      t5 = -1.0;
-    t8 = gamma;
-    t9 = gammai;
+      t5 = -1.0
+    t8 = gamma
+    t9 = gammai
     dregdug = 1 / (1 - t8 + t9) / MUG * t5 * alpha * w_rho * w_u * D * rhog;
     
     # derivada de ui e, relação a ul
     if Rel < 2000:
-      duidul = 1.8;
+      duidul = 1.8
     elif Rel > 2200:
-      duidul = 1.0;
+      duidul = 1.0
     else:
       duidul = (1.8*(2200-Rel) + (Rel-2000) )/200;
     
     # derivada da relação de equilíbrio local em relação a alpha
     
-    t1 = dregda;
-    t4 = Dg;
-    t5 = (t4 ** 2);
-    t7 = dDgda;
-    t13 = abs(ug);
-    t14 = gamma;
-    t16 = (1 - t14) * t13;
-    t17 = 1 / alpha;
-    t21 = Reg;
-    t24 = fg;
-    t26 = ug * t24 * rhog;
-    t27 = dgammada;
-    t32 = alpha ** 2;
-    t33 = 1 / t32;
-    t37 = drelda;
-    t40 = Dl;
-    t41 = (t40 ** 2);
-    t43 = dDlda;
-    t49 = abs(ul);
-    t50 = t14 * t49;
-    t51 = 1 - alpha;
-    t52 = 2 * t51;
-    t53 = 1 / t52;
-    t56 = Rel;
-    t59 = fl;
-    t61 = ul * t59 * rhol;
-    t65 = t52 ** 2;
-    t71 = ui;
-    t72 = ug - t71;
-    t73 = t72 * fi * rhog;
-    t74 = abs(t72);
-    t75 = dgammaida;
-    t77 = 1 / t51;
-    t82 = gammai;
-    t83 = t82 * t74;
-    t88 = t51 ** 2;
+    t1 = dregda
+    t4 = Dg
+    t5 = (t4 ** 2)
+    t7 = dDgda
+    t13 = abs(ug)
+    t14 = gamma
+    t16 = (1 - t14) * t13
+    t17 = 1 / alpha
+    t21 = Reg
+    t24 = fg
+    t26 = ug * t24 * rhog
+    t27 = dgammada
+    t32 = alpha ** 2
+    t33 = 1 / t32
+    t37 = drelda
+    t40 = Dl
+    t41 = (t40 ** 2)
+    t43 = dDlda
+    t49 = abs(ul)
+    t50 = t14 * t49
+    t51 = 1 - alpha
+    t52 = 2 * t51
+    t53 = 1 / t52
+    t56 = Rel
+    t59 = fl
+    t61 = ul * t59 * rhol
+    t65 = t52 ** 2
+    t71 = ui
+    t72 = ug - t71
+    t73 = t72 * fi * rhog
+    t74 = abs(t72)
+    t75 = dgammaida
+    t77 = 1 / t51
+    t82 = gammai
+    t83 = t82 * t74
+    t88 = t51 ** 2
     dfda = (t17 * t16 * ug * (t1 * dfgdreg - t7 / t5 * dfgdepsg * EPS) * rhog) / 0.2e1 - (t17 * t27 * t13 * t26) / 0.2e1 - (t33 * t16 * t26) / 0.2e1 - (t53 * t50 * ul * (t37 * dfldrel - t43 / t41 * dfldepsl * EPS) * rhol) - (t53 * t27 * t49 * t61) - (2 / t65 * t50 * t61) + (t77 * t17 * t75 * t74 * t73) / 0.2e1 - (t77 * t33 * t83 * t73) / 0.2e1 + (1 / t88 * t17 * t83 * t73) / 0.2e1;
     
     # derivada da relação de equilíbrio local em relação a densidade do gás rhog
-    t1 = Reg;
-    t2 = Dg;
-    t5 = fg;
-    t7 = abs(ug);
-    t8 = gamma;
-    t9 = 1 - t8;
-    t11 = 1 / alpha;
-    t16 = dregdrhog;
-    t23 = ui;
-    t24 = ug - t23;
-    t26 = abs(t24);
-    t28 = gammai;
-    t35 = np.sin(theta);
+    t1 = Reg
+    t2 = Dg
+    t5 = fg
+    t7 = abs(ug)
+    t8 = gamma
+    t9 = 1 - t8
+    t11 = 1 / alpha
+    t16 = dregdrhog
+    t23 = ui
+    t24 = ug - t23
+    t26 = abs(t24)
+    t28 = gammai
+    t35 = np.sin(theta)
     dfdrhog = (t11 * t9 * t7 * ug * t5) / 0.2e1 + (t11 * t9 * t7 * ug * t16 * dfgdreg * rhog) / 0.2e1 + (1 / (1 - alpha) * t11 * t28 * t26 * t24 * fi) / 0.2e1 - t35 * PID;
     
     # derivada da relação de equilíbrio local em relação a densidade do líquido rhol
-    t1 = Rel;
-    t2 = Dl;
-    t5 = fl;
-    t7 = abs(ul);
-    t8 = gamma;
-    t12 = 1 / (2 - 2 * alpha);
-    t16 = dreldrhol;
-    t22 = np.sin(theta);
+    t1 = Rel
+    t2 = Dl
+    t5 = fl
+    t7 = abs(ul)
+    t8 = gamma
+    t12 = 1 / (2 - 2 * alpha)
+    t16 = dreldrhol
+    t22 = np.sin(theta)
     dfdrhol = -(t12 * t8 * t7 * ul * t16 * dfldrel * rhol) - (t12 * t8 * t7 * ul * t5) + t22 * PID;
     
     # derivada da relação de equilíbrio local em relação a ul
-    t2 = dreldul;
-    t4 = abs(ul);
-    t6 = gamma;
-    t7 = 1 - alpha;
-    t9 = 0.1e1 / t7 / 0.2e1;
-    t13 = Rel;
-    t14 = Dl;
-    t17 = fl;
-    t18 = t17 * rhol;
+    t2 = dreldul
+    t4 = abs(ul)
+    t6 = gamma
+    t7 = 1 - alpha
+    t9 = 0.1e1 / t7 / 0.2e1
+    t13 = Rel
+    t14 = Dl
+    t17 = fl
+    t18 = t17 * rhol
     #t23 = abs(1, ul);
     if ul >= 0:
-      t23 = 1;
+      t23 = 1
     elif ul < 0:
-      t23 = -1;
-    t27 = (fi * rhog);
-    t28 = duidul;
-    t30 = ui;
-    t31 = (ug - t30);
-    t32 = abs(t31);
-    t33 = gammai;
-    t37 = 1 / t7 / alpha;
+      t23 = -1
+    t27 = (fi * rhog)
+    t28 = duidul
+    t30 = ui
+    t31 = (ug - t30)
+    t32 = abs(t31)
+    t33 = gammai
+    t37 = 1 / t7 / alpha
     #t43 = abs(1, t31);
     if t31 >= 0:
-      t43 = 1;
+      t43 = 1
     elif t31 < 0:
-      t43 = -1;
+      t43 = -1
     
     dfdul = -t9 * t6 * t4 * ul * t2 * dfldrel * rhol - t9 * t6 * t4 * t18 - t9 * t6 * t23 * ul * t18 - (t37 * t33 * t32 * t28 * t27) / 0.2e1 - (t37 * t33 * t43 * t28 * t31 * t27) / 0.2e1;
     
     # derivada da relação de equilíbrio local em relação a ug
-    t2 = dregdug;
-    t4 = abs(ug);
-    t6 = gamma;
-    t7 = 1 - t6;
-    t8 = 1 / alpha;
-    t12 = Reg;
-    t13 = Dg;
-    t16 = fg;
-    t17 = (t16 * rhog);
+    t2 = dregdug
+    t4 = abs(ug)
+    t6 = gamma
+    t7 = 1 - t6
+    t8 = 1 / alpha
+    t12 = Reg
+    t13 = Dg
+    t16 = fg
+    t17 = (t16 * rhog)
     #t22 = abs(1, ug);
     if ug >= 0:
-      t22 = 1.0;
+      t22 = 1.0
     elif ug < 0:
-      t22 = -1.0;
-    t26 = (fi * rhog);
-    t27 = ui;
-    t28 = ug - t27;
-    t29 = abs(t28);
-    t31 = gammai;
-    t34 = 1 / (1 - alpha);
+      t22 = -1.0
+    t26 = (fi * rhog)
+    t27 = ui
+    t28 = ug - t27
+    t29 = abs(t28)
+    t31 = gammai
+    t34 = 1 / (1 - alpha)
     #t38 = abs(1, t28);
     if t28 >= 0:
-      t38 = 1.0;
+      t38 = 1.0
     elif t28 < 0:
-      t38 = -1.0;
+      t38 = -1.0
 
     dfdug = (t8 * t7 * t4 * ug * t2 * dfgdreg * rhog) / 0.2e1 + (t34 * t8 * t31 * t38 * t28 * t26) / 0.2e1 + (t8 * t7 * t22 * ug * t17) / 0.2e1 + (t34 * t8 * t31 * t29 * t26) / 0.2e1 + (t8 * t7 * t4 * t17) / 0.2e1;
 

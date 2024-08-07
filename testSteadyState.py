@@ -102,7 +102,7 @@ MUL = 1.0e-3  # kg/m/s
 MUG = 1.81e-5  # kg/m/s
 EPS = 1.5e-6  # m
 G = 9.8  # m/s^2
-BETA = 2 * np.pi / 180  # inclinação do tubo
+BETA = 5 * np.pi / 180  # inclinação do tubo
 tol = 1.0e-15
 sigma = 7.28 * 10**(-2)  # N/m
 
@@ -120,11 +120,11 @@ omega_c = 1 / np.sqrt(omega_rho / omega_P)
 Ps = 2.0*P_l0 #float(input('Pressão no separador = '))
 jl = 6.0      #float(input('Velocidade superficial do líquido em m/s = '))
 jg = 1.0      #float(input('Velocidade superficial do gás em m/s = '))
-N = 91        #int(input('Número de pontos na malha = '))
+N = 201        #int(input('Número de pontos na malha = '))
 
 # Escala de velocidade
 omega_u = max(jl, jg)
-print(f'omega_u = {omega_u}')
+# print(f'omega_u = {omega_u}')
 
 # Vazão de massa de líquido e gás que entra no oleoduto
 Pb = Ps + rho_l0 * G * Z
@@ -144,8 +144,6 @@ njg = jg / omega_u
 nPs = Ps / omega_P
 nmul = mul / (rho_l0 * omega_u)
 nmug = mug / (rho_l0 * omega_u)
-
-print(f'nCg = {nCg}, nCl = {nCl}, nP_l0 = {nP_l0}, nrho_l0 = {nrho_l0}, njl = {njl}, njg = {njg}, nPs = {nPs}, nmul = {nmul}, nmug = {nmug}')
 
 # Parâmetro da catenária
 CA = catenary.catenary_constant(X, Z, tol)
@@ -170,20 +168,27 @@ for i in range(N):
 
 errol2 = np.sqrt(errol2)
 
+print(f'nCg = {nCg}, nCl = {nCl}, nP_l0 = {nP_l0}, nrho_l0 = {nrho_l0}, njl = {njl}, njg = {njg}, nPs = {nPs}, nmul = {nmul}, nmug = {nmug}')
+
 print(f'errol2 = {errol2}, errolinf = {errolinf}')
 
 # Plotagens
+plt.figure(1)
 plt.plot(vns, vnp, '+k')
-plt.show()
-plt.plot(vns, nrhogv, '+b')
-plt.show()
-plt.plot(vns, nrholv, '+g')
-plt.show()
-plt.plot(vns, alphav, '*k')
-plt.show()
-plt.plot(vns, nulv, '*b')
-plt.show()
-plt.plot(vns, nugv, '*g')
-plt.show()
 
-plt.close('all')
+# plt.figure(2)
+# plt.plot(vns, nrhogv, '+b')
+
+# plt.figure(3)
+# plt.plot(vns, nrholv, '+g')
+
+plt.figure(4)
+plt.plot(vns, alphav, '*k')
+# plt.grid()
+# plt.figure(5)
+# plt.plot(vns, nulv, '*b')
+
+# plt.figure(6)
+# plt.plot(vns, nugv, '*g')
+
+# plt.close('all')

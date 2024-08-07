@@ -8,6 +8,35 @@ Created on Mon May  8 10:00:22 2023
 import math
 import numpy as np
 
+def fun_or_geo(s, Lp, beta, AC):
+   """
+   Função que devolve o ângulo de inclinação local da tubulação em um sistema
+   oleoduto-riser com riser em catenária e oleoduto reto com ângulo de inclinação
+   beta.
+
+   Parâmetros:
+   s : float
+       Posição ao longo da tubulação.
+   Lp : float
+       Comprimento do oleoduto.
+   beta : float
+       Ângulo de inclinação do oleoduto.
+   AC : float
+       Constante da catenária.
+
+   Retorna:
+   theta : float
+       Ângulo de inclinação local da tubulação.
+   """
+   if s < Lp:
+       theta = -beta
+   else:
+       xa = np.arcsinh((s - Lp) / AC)
+       theta = np.arctan(np.sinh(xa))
+   
+   return theta
+
+
 def Dfungeo(s,VPARAM):
     #
     # this function generates the riser inclinarion angle at position s.
@@ -102,49 +131,3 @@ def compute_catenary(s, z, Lp, theta_0):
         theta_graus = Dfungeo(s, VPARAM)
         theta_radianos = theta_graus * (math.pi / 180)
         return theta_radianos 
-    
-# This script tests the code to obtain the catenary constant. Use data from
-# Wordsworth e al 1998.
-#
-# x - horizontal coordinate of the top of the catenary
-# z - vertical coordinate of the top of the catenary
-# tol - tolerance
-
-# x = 1.5 # meters
-# z = 1.5 # meters
-# tol = 0.0001 #input('tolerance to be used = ');
-
-# # perform test
-
-# A = catenary_constant(x,z,tol)
-# value = catenaryf(x,z,A)
-# LR = A*math.sinh(x/A)
-
-
-# n = 1000 #input(' number of points = ');
-# dx = x/(n-1)
-# ds = LR/(n-1)
-
-# # for i=1:1:n
-# #    xv(i) = (i-1)*dx;
-# #    zv(i) = A*(cosh(xv(i)/A)-1.0);
-# # end
-# # %
-# # plot(xv,zv);
-# # pause
-# # %
-# VPARAM = np.array([A,LR])
-
-# sv = np.zeros([n])
-# vtheta = np.zeros([n])
-# vdtheta = np.zeros([n])
-# vdthetaa = np.zeros([n])
-# # %
-# for i in np.arange(0,n):
-#   sv[i] = (i-1)*ds
-#   vtheta[i] = fungeo(sv[i],VPARAM)
-#   vdtheta[i] = Dfungeo(sv[i],VPARAM)
-#   vdthetaa[i] = (LR/A)*(math.cos(vtheta[i])**2)
-
-# plot(sv,vtheta);
-# plot(sv,vdtheta,'-',sv,vdthetaa,'*');
