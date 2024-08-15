@@ -8,7 +8,8 @@ import steadyState
 import boundaryConditions
 import matplotlib.pyplot as plt
 
-def apply_boundary_conditions(U, alpha_in, P_in, rho_l_in, u_l_in, u_g_in, alpha_out, P_separator, nCg, nCl, rho_l0, P_l0, tol):
+#def apply_boundary_conditions(U, alpha_in, P_in, rho_l_in, u_l_in, u_g_in, u_l_out, u_g_out, alpha_out, P_separator, nCg, nCl, nrho_l0, nP_l0, tol):
+def apply_boundary_conditions(U, alpha_in, rho_l_in, rho_g_in, u_l_in, u_g_in, rho_l_out, rho_g_out, u_l_out, u_g_out, alpha_out):
     """
     Apply boundary conditions at the pipeline entrance and riser top.
     
@@ -24,15 +25,25 @@ def apply_boundary_conditions(U, alpha_in, P_in, rho_l_in, u_l_in, u_g_in, alpha
         P_l0 (float): Reference pressure.
         tol (float): Tolerance for convergence.
     """
+    
+    # # inlet
+    # U[0, 0] = (1 - alpha_in) * (rho_l0 + (P_in - P_l0) / nCl)
+    # U[0, 1] = alpha_in * P_in / (nCg ** 2)
+    # U[0, 2] = (1 - alpha_in) * (rho_l0 + (P_in - P_l0) / nCl) * u_l_in + alpha_in * (P_in / (nCg ** 2)) * u_g_in
+    
+    # # outlet
+    # U[-1, 0] = (1 - alpha_out) * (rho_l0 + (P_separator - P_l0) / nCl)
+    # U[-1, 1] = alpha_out * P_separator / (nCg ** 2)
+    # U[-1, 2] = (1 - alpha_out) * (rho_l0 + (P_separator - P_l0) / nCl) * u_l_out + alpha_out * (P_separator / (nCg ** 2)) * u_g_out
     # inlet
-    U[0, 0] = (1 - alpha_in) * (rho_l0 + (P_in - P_l0) / nCl)
-    U[0, 1] = alpha_in * P_in / (nCg ** 2)
-    U[0, 2] = (1 - alpha_in) * rho_l_in * u_l_in + alpha_in * (P_in / (nCg ** 2)) * u_g_in
+    U[0, 0] = (1 - alpha_in) * rho_l_in
+    U[0, 1] = alpha_in * rho_g_in
+    U[0, 2] = (1 - alpha_in) * rho_l_in * u_l_in + alpha_in * rho_g_in * u_g_in
     
     # outlet
-    U[-1, 0] = (1 - alpha_out) * (rho_l0 + (P_separator - P_l0) / nCl)
-    U[-1, 1] = alpha_out * P_separator / (nCg ** 2)
-    U[-1, 2] = (1 - alpha_out) * rho_l_in * u_l_in + alpha_out * (P_separator / (nCg ** 2)) * u_g_in
+    U[-1, 0] = (1 - alpha_out) * rho_l_out
+    U[-1, 1] = alpha_out * rho_g_out
+    U[-1, 2] = (1 - alpha_out) * rho_l_out * u_l_out + alpha_out * rho_g_out * u_g_out
 
 def compute_conservative_variables(P, Cl, Cg, rho_l_0, Pl_0, alpha, rho_l, ul, rho_g, ug):
     u1 = (1 - alpha) * (rho_l_0 + (P - Pl_0) / Cl)
@@ -42,20 +53,20 @@ def compute_conservative_variables(P, Cl, Cg, rho_l_0, Pl_0, alpha, rho_l, ul, r
 
 def compute_primitive_variables(u1, u2, u3, theta, Cg, Cl, rho_l0, P_l0, D, AREA, EPS, G, MUL, MUG, sigma, w_u, w_rho, tol, tola, maxit):
 
-   # Obter alpha a partir de u1 e u2
-   alpha = find.alpha_fun_uj(u1, u2, Cg, Cl, rho_l0, P_l0, tol)
+    # Obter alpha a partir de u1 e u2
+    alpha = find.alpha_fun_uj(u1, u2, Cg, Cl, rho_l0, P_l0, tol)
    
-   # Obter a pressão a partir de u1 e u2
-   P = find.pressure_fun_uj(u1, u2, Cg, Cl, rho_l0, P_l0)
+    # Obter a pressão a partir de u1 e u2
+    P = find.pressure_fun_uj(u1, u2, Cg, Cl, rho_l0, P_l0)
    
-   # Densidades do gás e líquido
-   rhog = P / (Cg ** 2)
-   rhol = rho_l0 + (P - P_l0) / (Cl ** 2)
+    # Densidades do gás e líquido
+    rhog = P / (Cg ** 2)
+    rhol = rho_l0 + (P - P_l0) / (Cl ** 2)
    
-   # Velocidade do gás e líquido
-   ul, ug, index = find.find_ulug_from_uj_genflw_simp(u1, u2, u3, rhol, rhog, alpha, theta, D, AREA, EPS, G, MUL, MUG, sigma, w_u, w_rho, tol, tola, maxit)
+    # Velocidade do gás e líquido
+    ul, ug, index = find.find_ulug_from_uj_genflw_simp(u1, u2, u3, rhol, rhog, alpha, theta, D, AREA, EPS, G, MUL, MUG, sigma, w_u, w_rho, tol, tola, maxit)
 
-   return alpha, rhol, rhog, P, ul, ug, index
+    return alpha, rhol, rhog, P, ul, ug, index
 
 def compute_average_primitive_variables(alpha_i, alpha_ip1, rho_l_i, rho_l_ip1, rho_g_i, rho_g_ip1, u_l_i, u_l_ip1, u_g_i, u_g_ip1, P_i, P_ip1):
     alpha_i_star = 0.5 * (alpha_i + alpha_ip1)
@@ -130,7 +141,7 @@ def calculate_residuals(U, U_new):
     return residual_standard_error
 
 
-def simulate_pipeline(U, tol, n, nCg, nCl, nP_l0, nrho_l0, nPs, omega_c, omega_P, omega_rho, X, Z, mu_g, mu_l, eps, D_H, Lp, theta_0, delta_x, T, CFL, sigma, omega_u, AREA, G, alpha_start_dim, rho_l_start_dim, rho_g_start_dim, alpha_end_dim, rho_l_end_dim, rho_g_end_dim, nulv, nugv, njl, njg, p_start_dim):
+def simulate_pipeline(U, tol, n, nCg, nCl, nP_l0, nrho_l0, nPs, omega_c, omega_P, omega_rho, X, Z, mu_g, mu_l, eps, D_H, Lp, theta_0, delta_x, T, CFL, sigma, omega_u, AREA, G, alpha_start_dim, rho_l_start_dim, rho_g_start_dim, alpha_end_dim, rho_l_end_dim, rho_g_end_dim, nulv, nugv, njl, njg, p_start_dim, ul_start_dim, ug_start_dim, ul_end_dim, ug_end_dim):
     # n = U.shape[0]
     time = 0
     delta_t_min = 1e-3
@@ -144,7 +155,8 @@ def simulate_pipeline(U, tol, n, nCg, nCl, nP_l0, nrho_l0, nPs, omega_c, omega_P
     U_values = []
     CA = catenary.catenary_constant(X, Z, tol)
     while time < T:
-        apply_boundary_conditions(U, alpha_start_dim, p_start_dim, rho_l_start_dim, njl, njg, alpha_end_dim, nPs, nCg, nCl, nrho_l0, nP_l0, tol)
+        #apply_boundary_conditions(U, alpha_start_dim, p_start_dim, rho_l_start_dim, ul_start_dim, ug_start_dim, ul_end_dim, ug_end_dim, alpha_end_dim, nPs, nCg, nCl, nrho_l0, nP_l0, tol)
+        apply_boundary_conditions(U, alpha_start_dim, rho_l_start_dim, rho_g_start_dim, ul_start_dim, ug_start_dim, rho_l_end_dim, rho_g_end_dim, ul_end_dim, ug_end_dim, alpha_end_dim)
         for i in range(n - 1):
             theta = catenary.fun_or_geo(i * delta_x, Lp, theta_0, CA)
             alpha_i, rho_l_i, rho_g_i, P_i, u_l_i, u_g_i, index = compute_primitive_variables(U[i,0], U[i,1], U[i,2], theta, nCg, nCl, nrho_l0, nP_l0, D_H, AREA, eps, G, mu_l, mu_g, sigma, omega_u, omega_rho, tol, tola, n)
@@ -219,7 +231,7 @@ mu_g = 1.81e-5                  # viscosidade do gás
 mu_l = 1e-3                     # viscosidade do líquido
 eps = 4.6e-5                    # rugosidade
 D = 0.0254                      # diâmetro
-time = 0.0002                    # tempo total de simulação
+time = 0.01                    # tempo total de simulação
 CFL = 0.8                       # número de Courant-Friedrichs-Lewy
 tol = 1e-15
 tola = tol * 100
@@ -267,9 +279,13 @@ alpha_end_dim = alphav[-1]
 rho_l_end_dim = nrholv[-1] 
 rho_g_end_dim = nrhogv[-1] 
 p_start_dim = vnp[0]
+ul_start_dim = nulv[0]
+ug_start_dim = nugv[0]
+ul_end_dim = nulv[-1]
+ug_end_dim = nugv[-1]
 
 # Simulação
-U_final, time_values, U_values = simulate_pipeline(U, tol, n, nCg, nCl, nP_l0, nrho_l0, nPs, omega_c, omega_P, omega_rho, X, Z, mu_g, mu_l, eps, D, Lp, beta, delta_x, ntime, CFL, sigma, omega_u, AREA, G, alpha_start_dim, rho_l_start_dim, rho_g_start_dim, alpha_end_dim, rho_l_end_dim, rho_g_end_dim, nulv, nugv, njl, njg, p_start_dim)
+U_final, time_values, U_values = simulate_pipeline(U, tol, n, nCg, nCl, nP_l0, nrho_l0, nPs, omega_c, omega_P, omega_rho, X, Z, mu_g, mu_l, eps, D, Lp, beta, delta_x, ntime, CFL, sigma, omega_u, AREA, G, alpha_start_dim, rho_l_start_dim, rho_g_start_dim, alpha_end_dim, rho_l_end_dim, rho_g_end_dim, nulv, nugv, njl, njg, p_start_dim, ul_start_dim, ug_start_dim, ul_end_dim, ug_end_dim)
 
 # Plotando os resultados
 plt.figure(1)
