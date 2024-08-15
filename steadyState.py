@@ -59,6 +59,7 @@ def fun_dpds(s, p, mul, mug, Lp, Lr, CA, beta, DH, AREA, EPS, G, Cl, Cg, rho_l0,
    nrhog = p / (Cg**2)
    nrhol = rho_l0 + (p - P_l0) / (Cl**2)
    
+   
    # Velocidades superficiais adimensionais
    njl = mul / nrhol
    njg = mug / nrhog
@@ -107,7 +108,7 @@ def fun_dpds(s, p, mul, mug, Lp, Lr, CA, beta, DH, AREA, EPS, G, Cl, Cg, rho_l0,
    auxb = -PIF * rhom * fm * jt * abs(jt) / 2.0
    
    dpds = (auxa + auxb) / auxc
-   print(f"s: {s}, theta: {theta}, p: {p}, dpds: {dpds}")
+   print(f"s: {s}, theta: {theta}, p: {p}")
    return dpds
 
 # Função para resolver o estado estacionário
@@ -124,10 +125,10 @@ def EstadoEstacionario_ndim_simp(N, mul, mug, Ps, Lp, Lr, CA, beta, DH, AREA, EP
         'max_step': ds,
         'first_step': ds / 10000.0,  
     }
-        
+    
     # Integração da pressão do topo do riser até o início do oleoduto
     sol = solve_ivp(lambda s, p: fun_dpds(s, p, mul, mug, Lp, Lr, CA, beta, DH, AREA, EPS, G, Cl, Cg, rho_l0, P_l0, MUL, MUG, sigma, w_p, w_u, w_rho, tol),
-                   [tspan[0], tspan[-1]], [Ps], t_eval=tspan, **options)
+                    [tspan[0], tspan[-1]], [Ps], t_eval=tspan, **options)
     
     if not sol.success:
         raise RuntimeError(f"Integration failed: {sol.message}")

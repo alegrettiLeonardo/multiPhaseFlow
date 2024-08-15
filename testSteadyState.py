@@ -92,35 +92,35 @@ def vetor_h_ndim_simp(N, vns, vnp, nrhogv, nrholv, alphav, nugv, nulv, mul, mug,
 
 
 # Constantes
-P_l0 = 101300  # Pa
-rho_l0 = 1000  # Kg/m^3
-Cg = 300  # m/s
-Cl = 1500  # m/s
-D = 0.0254  # m
-AREA = np.pi * (D / 2) ** 2
-MUL = 1.0e-3  # kg/m/s
-MUG = 1.81e-5  # kg/m/s
-EPS = 1.5e-6  # m
-G = 9.8  # m/s^2
-BETA = 5 * np.pi / 180  # inclinação do tubo
-tol = 1.0e-15
-sigma = 7.28 * 10**(-2)  # N/m
-
-# Coordenadas
-X = 6.435  # meters
-Z = 9.886  # meters
-Lp = 10  # meters
+N = 51                          # número de pontos da malha
+X = 6.435                       # comprimento do riser
+Z = 9.886                       # altura do tubo
+Lp = 10.0                       # comprimento do oleoduto
+beta = 5.0                      # ângulo inicial em graus
+Cg = 343.0                      # velocidade do som no gás
+Cl = 1498.0                     # velocidade do som no líquido
+P_l0 = 101325.0                 # pressão de referência
+rho_l0 = 998.0                  # densidade do líquido de referência
+rho_g0 = 1.2                    # densidade do gás de referência
+Ps = 2.0*P_l0                   # pressão no tubo
+mu_g = 1.81e-5                  # viscosidade do gás
+mu_l = 1.0e-3                   # viscosidade do líquido
+eps = 4.6e-5                    # rugosidade
+D = 0.0254                      # diâmetro
+time = 0.0009                   # tempo total de simulação
+CFL = 0.9                       # número de Courant-Friedrichs-Lewy
+tol = 1e-15
+tola = tol * 100
+AREA = np.pi * (D**2)/4.0
+sigma = 7.28e-2
+G = 9.81
+jl = 6.0
+jg = 1.0
 
 # Escalas de pressão e densidade
 omega_P = P_l0
 omega_rho = rho_l0
 omega_c = 1 / np.sqrt(omega_rho / omega_P)
-
-# Leitura dos valores de entrada
-Ps = 2.0*P_l0 #float(input('Pressão no separador = '))
-jl = 6.0      #float(input('Velocidade superficial do líquido em m/s = '))
-jg = 1.0      #float(input('Velocidade superficial do gás em m/s = '))
-N = 201        #int(input('Número de pontos na malha = '))
 
 # Escala de velocidade
 omega_u = max(jl, jg)
@@ -131,8 +131,8 @@ Pb = Ps + rho_l0 * G * Z
 rhog = Pb / (Cg**2)
 rhol = rho_l0 + (Pb - P_l0) / (Cl**2)
 
-mul = rhol * jl * AREA
-mug = rhog * jg * AREA
+mul = rhol * jl #* AREA
+mug = rhog * jg #* AREA
 
 # Adimensionalização
 nCg = Cg / omega_c
@@ -151,12 +151,12 @@ Lr = CA * np.sinh(X / CA)
 
 # Estado Estacionário
 vns, vnp, nrhogv, nrholv, alphav, nugv, nulv, thetav = steadyState.EstadoEstacionario_ndim_simp(
-   N, nmul, nmug, nPs, Lp, Lr, CA, BETA, D, AREA, EPS, G, nCl, nCg, nrho_l0, nP_l0, MUL, MUG, sigma, omega_P, omega_u, omega_rho, tol
+   N, nmul, nmug, nPs, Lp, Lr, CA, beta, D, AREA, eps, G, nCl, nCg, nrho_l0, nP_l0, mu_l, mu_g, sigma, omega_P, omega_u, omega_rho, tol
 )
 
 # Avalie vetor h no estado estacionário
 hv = vetor_h_ndim_simp(
-   N, vns, vnp, nrhogv, nrholv, alphav, nugv, nulv, nmul, nmug, nPs, Lp, Lr, CA, BETA, D, AREA, EPS, G, nCl, nCg, nrho_l0, nP_l0, MUL, MUG, sigma, omega_P, omega_u, omega_rho, tol
+   N, vns, vnp, nrhogv, nrholv, alphav, nugv, nulv, nmul, nmug, nPs, Lp, Lr, CA, beta, D, AREA, eps, G, nCl, nCg, nrho_l0, nP_l0, mu_l, mu_g, sigma, omega_P, omega_u, omega_rho, tol
 )
 
 # Determine o erro com que o estado estacionário foi avaliado

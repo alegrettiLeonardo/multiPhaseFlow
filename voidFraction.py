@@ -6,6 +6,7 @@ Created on Thu Aug 24 09:31:17 2023
 """
 
 import math
+import numpy as np
 import closureLaw
 
 def ffan(epsD, Re):
@@ -91,9 +92,7 @@ def fvgamma(alpha, gamma):
    """
    Esta função avalia alpha-1+gamma-(1/2*Pi)*sin(2*Pi*gamma)
    """
-   fv = 2 * math.pi * gamma
-   fv = math.sin(fv) / (2 * math.pi)
-   fv = alpha - 1.0 + gamma - fv
+   fv = alpha - 1.0 + gamma - math.sin(2 * math.pi * gamma) / (2 * math.pi)
    return fv
 
 def alpha2gamma(alpha, tol):
@@ -133,39 +132,35 @@ def FracaoVazio_comp(jl, jg, rhog, rhol, BETA, D, AREA, EPS, G, MUL, MUG, w_u, w
    Determina a fração de vazio no tubo utilizando a relação de equilíbrio local
    para escoamento estratificado. Assume-se escoamento estratificado.
 
-   Args:
-       jl (float): Velocidade superficial adimensional do líquido em um ponto do pipe.
-       jg (float): Velocidade superficial adimensional do gás em um ponto do pipe.
-       rhol (float): Densidade adimensional do líquido.
-       rhog (float): Densidade adimensional do gás.
-       BETA (float): Ângulo de inclinação do pipe (positivo para escoamento descendente).
-       AREA (float): Área seccional da tubulação do pipeline e riser.
-       D (float): Diâmetro da tubulação.
-       EPS (float): Rugosidade do tubo do pipeline.
-       G (float): Aceleração da gravidade.
-       MUL (float): Viscosidade dinâmica do líquido.
-       MUG (float): Viscosidade dinâmica do gás.
-       w_u (float): Escala de velocidade.
-       w_rho (float): Escala de densidade.
-       tol (float): Tolerância numérica.
+   Parameters:
+   jl : float       -> Velocidade superficial adimensional do líquido em um ponto do pipe
+   jg : float       -> Velocidade superficial adimensional do gás em um ponto do pipe
+   rhol : float     -> Densidade adimensional do líquido
+   rhog : float     -> Densidade adimensional do gás
+   BETA : float     -> Ângulo de inclinação do pipe (positivo para escoamento descendente)
+   D : float        -> Diâmetro da tubulação
+   AREA : float     -> Área seccional da tubulação do pipeline e riser
+   EPS : float      -> Rugosidade do tubo do pipeline
+   G : float        -> Aceleração da gravidade
+   MUL : float      -> Viscosidade dinâmica do líquido
+   MUG : float      -> Viscosidade dinâmica do gás
+   w_u : float      -> Escala de velocidade
+   w_rho : float    -> Escala de densidade
+   tol : float      -> Tolerância numérica
 
    Returns:
-       float: Fração de vazio em um ponto do pipe.
+   alpha : float    -> Fração de vazio em um ponto do pipe
    """
-
+   
    alpha_max = 1.0 - math.sqrt(tol)
    alpha_min = math.sqrt(tol)
-   def calculate_ul_ug(alpha):
-       """Calcula ul e ug com base em alpha."""
-       ul = jl / (1 - alpha)
-       ug = jg / alpha
-       return ul, ug
 
    while abs(alpha_max - alpha_min) > tol:
        alpha = (alpha_max + alpha_min) / 2.0
-       ul, ug = calculate_ul_ug(alpha)
+       ul = jl / (1 - alpha)
+       ug = jg / alpha
        fv = closureLaw.RelEquilLocalPipe_comp(ul, ug, rhol, rhog, alpha, BETA, D, AREA, EPS, G, MUL, MUG, w_u, w_rho, tol)
-
+       # print("fv pipe:",fv)
        if fv < 0:
            alpha_max = alpha
        elif fv > 0:
@@ -173,7 +168,9 @@ def FracaoVazio_comp(jl, jg, rhog, rhol, BETA, D, AREA, EPS, G, MUL, MUG, w_u, w
        else:
            alpha_max = alpha
            alpha_min = alpha
-   return (alpha_max + alpha_min) / 2.0
+
+       alpha = (alpha_max + alpha_min) / 2.0
+   return alpha
 
 def FracaoVazio_swananda_ndim(jl, jg, rhog, rhol, theta, D, AREA, EPS, G, MUL, MUG, sigma, w_u, w_rho, tol):
    """
@@ -202,15 +199,15 @@ def FracaoVazio_swananda_ndim(jl, jg, rhog, rhol, theta, D, AREA, EPS, G, MUL, M
    Cd: coeficiente de arrasto
    Ud: velocidade de arrasto
    """
-   alpha_max = 1.0 - math.sqrt(tol)
-   alpha_min = math.sqrt(tol)
+   alpha_max = 1.0 - np.sqrt(tol)
+   alpha_min = np.sqrt(tol)
 
    while abs(alpha_max - alpha_min) > tol:
        alpha = (alpha_max + alpha_min) / 2.0
        ul = jl / (1 - alpha)
        ug = jg / alpha
-       fv = closureLaw.drift_flux_swananda_ndim(alpha, rhol, rhog, ul, ug, theta, D, AREA, EPS, G, MUL, MUG, sigma, w_u, w_rho, tol)
-
+       fv = closureLaw.drift_flux_swananda_ndim(ul, ug, rhol, rhog, alpha, theta, D, AREA, EPS, G, MUL, MUG, sigma, w_u, w_rho, tol)
+       # print("fv riser:",fv)
        if fv > 0:
            alpha_max = alpha
        elif fv < 0:
@@ -219,7 +216,7 @@ def FracaoVazio_swananda_ndim(jl, jg, rhog, rhol, theta, D, AREA, EPS, G, MUL, M
            alpha_max = alpha
            alpha_min = alpha
 
-   alpha = (alpha_max + alpha_min) / 2.0
+       alpha = (alpha_max + alpha_min) / 2.0
    Cd, Ud = closureLaw.CdUd_swananda(alpha, rhol, rhog, ul, ug, theta, D, AREA, EPS, G, MUL, MUG, sigma, w_u, w_rho, tol)
 
    return alpha, Cd, Ud
