@@ -144,7 +144,7 @@ def calculate_residuals(U, U_new):
 def simulate_pipeline(U, tol, n, nCg, nCl, nP_l0, nrho_l0, nPs, omega_c, omega_P, omega_rho, X, Z, mu_g, mu_l, eps, D_H, Lp, theta_0, delta_x, T, CFL, sigma, omega_u, AREA, G, alpha_start_dim, rho_l_start_dim, rho_g_start_dim, alpha_end_dim, rho_l_end_dim, rho_g_end_dim, nulv, nugv, njl, njg, p_start_dim, ul_start_dim, ug_start_dim, ul_end_dim, ug_end_dim):
     # n = U.shape[0]
     time = 0
-    delta_t_min = 1e-3
+    delta_t_min = 1e-5
     residuals = np.zeros((n, 3))
     U_new = U.copy()
     # Armazenar valores ao longo do tempo
@@ -216,7 +216,7 @@ def plot_results(time_values, U_values, label):
     plt.show()
     
 # Parâmetros de entrada e condições iniciais
-n = 71                          # número de pontos da malha
+n = 101                          # número de pontos da malha
 X = 6.435                       # comprimento do riser
 Z = 9.886                       # altura do tubo
 Lp = 10.0                       # comprimento do oleoduto
@@ -226,20 +226,20 @@ Cl = 1498.0                     # velocidade do som no líquido
 P_l0 = 101325.0                 # pressão de referência
 rho_l0 = 998.0                  # densidade do líquido de referência
 rho_g0 = 1.2                    # densidade do gás de referência
-Ps = 2.0*P_l0                   # pressão no tubo
+Ps = 1.5*P_l0                   # pressão no tubo
 mu_g = 1.81e-5                  # viscosidade do gás
-mu_l = 1e-3                     # viscosidade do líquido
+mu_l = 1.0e-3                   # viscosidade do líquido
 eps = 4.6e-5                    # rugosidade
 D = 0.0254                      # diâmetro
-time = 0.01                    # tempo total de simulação
-CFL = 0.8                       # número de Courant-Friedrichs-Lewy
+time = 0.001                    # tempo total de simulação
+CFL = 0.6                       # número de Courant-Friedrichs-Lewy
 tol = 1e-15
 tola = tol * 100
 AREA = math.pi * (D**2)/4.0
 sigma = 7.28e-2
 G = 9.81
-jl = 6.0
-jg = 1.0
+jl = 0.06
+jg = 0.001
 
 # Parâmetro da catenária
 CA = catenary.catenary_constant(X, Z, tol)
@@ -264,7 +264,9 @@ nrhol0 = rhol0 / omega_rho
 ntime = time*(jl/Lr)
 
 # Calculo do estado estacionário
-vns, vnp, nrhogv, nrholv, alphav, nugv, nulv, thetav = steadyState.EstadoEstacionario_ndim_simp(n, nmul, nmug, Ps, Lp, Lr, CA, np.radians(beta), D, AREA, eps, G, Cl, Cg, rho_l0, P_l0, mu_l, mu_g, sigma, omega_P, omega_u, omega_rho, tol)
+vns, vnp, nrhogv, nrholv, alphav, nugv, nulv, thetav = steadyState.EstadoEstacionario_ndim_simp(
+   n, nmul, nmug, nPs, Lp, Lr, CA, np.radians(beta), D, AREA, eps, G, nCl, nCg, nrho_l0, nP_l0, mu_l, mu_g, sigma, omega_P, omega_u, omega_rho, tol
+)
 for i in range(n):
     # Condições iniciais de U
     u1, u2, u3 = compute_conservative_variables(vnp[i], nCl, nCg, nrho_l0, nP_l0, alphav[i], nrholv[i], nulv[i], nrhogv[i], nugv[i])

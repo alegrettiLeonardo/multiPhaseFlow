@@ -92,7 +92,7 @@ def vetor_h_ndim_simp(N, vns, vnp, nrhogv, nrholv, alphav, nugv, nulv, mul, mug,
 
 
 # Constantes
-N = 51                          # número de pontos da malha
+N = 101                          # número de pontos da malha
 X = 6.435                       # comprimento do riser
 Z = 9.886                       # altura do tubo
 Lp = 10.0                       # comprimento do oleoduto
@@ -102,7 +102,7 @@ Cl = 1498.0                     # velocidade do som no líquido
 P_l0 = 101325.0                 # pressão de referência
 rho_l0 = 998.0                  # densidade do líquido de referência
 rho_g0 = 1.2                    # densidade do gás de referência
-Ps = 2.0*P_l0                   # pressão no tubo
+Ps = 1.5*P_l0                   # pressão no tubo
 mu_g = 1.81e-5                  # viscosidade do gás
 mu_l = 1.0e-3                   # viscosidade do líquido
 eps = 4.6e-5                    # rugosidade
@@ -114,25 +114,23 @@ tola = tol * 100
 AREA = np.pi * (D**2)/4.0
 sigma = 7.28e-2
 G = 9.81
-jl = 6.0
-jg = 1.0
+jl = 6.0#e-2
+jg = 1.0#e-2
+
 
 # Escalas de pressão e densidade
 omega_P = P_l0
 omega_rho = rho_l0
 omega_c = 1 / np.sqrt(omega_rho / omega_P)
-
 # Escala de velocidade
 omega_u = max(jl, jg)
-# print(f'omega_u = {omega_u}')
 
 # Vazão de massa de líquido e gás que entra no oleoduto
 Pb = Ps + rho_l0 * G * Z
 rhog = Pb / (Cg**2)
 rhol = rho_l0 + (Pb - P_l0) / (Cl**2)
-
-mul = rhol * jl #* AREA
-mug = rhog * jg #* AREA
+mul = rhol * jl 
+mug = rhog * jg 
 
 # Adimensionalização
 nCg = Cg / omega_c
@@ -151,7 +149,7 @@ Lr = CA * np.sinh(X / CA)
 
 # Estado Estacionário
 vns, vnp, nrhogv, nrholv, alphav, nugv, nulv, thetav = steadyState.EstadoEstacionario_ndim_simp(
-   N, nmul, nmug, nPs, Lp, Lr, CA, beta, D, AREA, eps, G, nCl, nCg, nrho_l0, nP_l0, mu_l, mu_g, sigma, omega_P, omega_u, omega_rho, tol
+   N, nmul, nmug, nPs, Lp, Lr, CA, np.radians(beta), D, AREA, eps, G, nCl, nCg, nrho_l0, nP_l0, mu_l, mu_g, sigma, omega_P, omega_u, omega_rho, tol
 )
 
 # Avalie vetor h no estado estacionário
@@ -174,7 +172,9 @@ print(f'errol2 = {errol2}, errolinf = {errolinf}')
 
 # Plotagens
 plt.figure(1)
+plt.title("Pressure")
 plt.plot(vns, vnp, '+k')
+plt.grid()
 
 # plt.figure(2)
 # plt.plot(vns, nrhogv, '+b')
@@ -183,8 +183,10 @@ plt.plot(vns, vnp, '+k')
 # plt.plot(vns, nrholv, '+g')
 
 plt.figure(4)
+plt.title("Alpha")
 plt.plot(vns, alphav, '*k')
-# plt.grid()
+plt.grid()
+
 # plt.figure(5)
 # plt.plot(vns, nulv, '*b')
 

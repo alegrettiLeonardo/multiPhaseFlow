@@ -160,7 +160,6 @@ def FracaoVazio_comp(jl, jg, rhog, rhol, BETA, D, AREA, EPS, G, MUL, MUG, w_u, w
        ul = jl / (1 - alpha)
        ug = jg / alpha
        fv = closureLaw.RelEquilLocalPipe_comp(ul, ug, rhol, rhog, alpha, BETA, D, AREA, EPS, G, MUL, MUG, w_u, w_rho, tol)
-       # print("fv pipe:",fv)
        if fv < 0:
            alpha_max = alpha
        elif fv > 0:
@@ -169,7 +168,7 @@ def FracaoVazio_comp(jl, jg, rhog, rhol, BETA, D, AREA, EPS, G, MUL, MUG, w_u, w
            alpha_max = alpha
            alpha_min = alpha
 
-       alpha = (alpha_max + alpha_min) / 2.0
+   alpha = (alpha_max + alpha_min) / 2.0
    return alpha
 
 def FracaoVazio_swananda_ndim(jl, jg, rhog, rhol, theta, D, AREA, EPS, G, MUL, MUG, sigma, w_u, w_rho, tol):
@@ -207,7 +206,6 @@ def FracaoVazio_swananda_ndim(jl, jg, rhog, rhol, theta, D, AREA, EPS, G, MUL, M
        ul = jl / (1 - alpha)
        ug = jg / alpha
        fv = closureLaw.drift_flux_swananda_ndim(ul, ug, rhol, rhog, alpha, theta, D, AREA, EPS, G, MUL, MUG, sigma, w_u, w_rho, tol)
-       # print("fv riser:",fv)
        if fv > 0:
            alpha_max = alpha
        elif fv < 0:
@@ -216,7 +214,7 @@ def FracaoVazio_swananda_ndim(jl, jg, rhog, rhol, theta, D, AREA, EPS, G, MUL, M
            alpha_max = alpha
            alpha_min = alpha
 
-       alpha = (alpha_max + alpha_min) / 2.0
+   alpha = (alpha_max + alpha_min) / 2.0
    Cd, Ud = closureLaw.CdUd_swananda(alpha, rhol, rhog, ul, ug, theta, D, AREA, EPS, G, MUL, MUG, sigma, w_u, w_rho, tol)
 
    return alpha, Cd, Ud
