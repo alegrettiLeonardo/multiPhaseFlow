@@ -10,7 +10,7 @@ def CdUd_swananda(alpha, rhol, rhog, ul, ug, theta, DH, AREA, EPS, G, MUL, MUG, 
    jt = jl + jg
 
    # Número de Froude
-   Fr = np.sqrt(rhog / (rhol - rhog)) * (jg * w_u) / np.sqrt(G * DH * np.cos(theta))
+   Fr = math.sqrt(rhog / (rhol - rhog)) * (jg * w_u) / math.sqrt(G * DH * math.cos(theta))
 
    # Número de Reynolds Retp
    Retp = jt * rhol * w_rho * w_u * DH / MUL
@@ -21,13 +21,13 @@ def CdUd_swananda(alpha, rhol, rhog, ul, ug, theta, DH, AREA, EPS, G, MUL, MUG, 
    x = (jg * rhog) / (jg * rhog + jl * rhol)
 
    # Número de Laplace
-   La = np.sqrt(sigma / (G * w_rho * (rhol - rhog))) / DH
+   La = math.sqrt(sigma / (G * w_rho * (rhol - rhog))) / DH
 
    # Cálculo do fator de atrito de Fanning - Colebrook (1939)
    df = 1
    ftp = 1
    while df > tol:
-       b = -4 * np.log10(((EPS / DH) / 3.7) + (1.256 / (Retp * np.sqrt(ftp))))
+       b = -4 * math.log10(((EPS / DH) / 3.7) + (1.256 / (Retp * math.sqrt(ftp))))
        f_new = 1 / (b ** 2)
        df = abs(f_new - ftp)
        ftp = f_new
@@ -37,7 +37,7 @@ def CdUd_swananda(alpha, rhol, rhog, ul, ug, theta, DH, AREA, EPS, G, MUL, MUG, 
 
    # C2
    if MUL / 0.001 > 10:
-       C2 = (0.434 / (np.log10(MUL / 0.001))) ** 0.15
+       C2 = (0.434 / (math.log10(MUL / 0.001))) ** 0.15
    else:
        C2 = 1
 
@@ -48,16 +48,16 @@ def CdUd_swananda(alpha, rhol, rhog, ul, ug, theta, DH, AREA, EPS, G, MUL, MUG, 
        C3 = 1
 
    # C4
-   if (Fr <= 0.1) and (theta < 0) and (theta >= -50 * np.pi / 180):
+   if (Fr <= 0.1) and (theta < 0) and (theta >= -50 * math.pi / 180):
        C4 = -1
    else:
        C4 = 1
 
    # Coeficiente C01 para o parâmetro de distribuição C0
-   if (Fr <= 0.1) and (theta < 0) and (theta > -50 * np.pi / 180):
+   if (Fr <= 0.1) and (theta < 0) and (theta > -50 * math.pi / 180):
        C01 = 0
    else:
-       C01 = (C1 - C1 * np.sqrt(rhog / rhol)) * (((2.6 - beta) ** 0.15) - np.sqrt(ftp)) * ((1 - x) ** 1.5)
+       C01 = (C1 - C1 * math.sqrt(rhog / rhol)) * (((2.6 - beta) ** 0.15) - math.sqrt(ftp)) * ((1 - x) ** 1.5)
 
    # Parâmetro de distribuição
    aux = 1 + (Retp / 1000) ** 2
@@ -65,8 +65,8 @@ def CdUd_swananda(alpha, rhol, rhog, ul, ug, theta, DH, AREA, EPS, G, MUL, MUG, 
    C0a = C0a / aux
 
    aux = 1 + (1000 / Retp) ** 2
-   C0b = (1 + ((rhog / rhol) ** 2) * np.cos(theta)) / (1 + np.cos(theta))
-   C0b = np.sqrt(C0b)
+   C0b = (1 + ((rhog / rhol) ** 2) * math.cos(theta)) / (1 + math.cos(theta))
+   C0b = math.sqrt(C0b)
    C0b = C0b ** (1 - alpha)
    C0b = C0b ** (2 / 5)
    C0b = (C0b + C01) / aux
@@ -75,8 +75,8 @@ def CdUd_swananda(alpha, rhol, rhog, ul, ug, theta, DH, AREA, EPS, G, MUL, MUG, 
 
    # Velocidade de deslizamento
    Ud = (1 - alpha) ** 0.5
-   Ud = Ud * np.sqrt((rhol - rhog) * DH * G / rhol)
-   Ud = Ud * (0.35 * np.sin(theta) + 0.45 * np.cos(theta)) * C2 * C3 * C4
+   Ud = Ud * math.sqrt((rhol - rhog) * DH * G / rhol)
+   Ud = Ud * (0.35 * math.sin(theta) + 0.45 * math.cos(theta)) * C2 * C3 * C4
 
    return Cd, Ud
 
@@ -109,7 +109,7 @@ def DCdUd_swananda(alpha, rhol, rhog, ul, ug, theta, DH, AREA, EPS, G, MUL, MUG,
     jt = jl+jg;
     
     # numero de Froude
-    Fr = np.sqrt(rhog/(rhol-rhog))*jg/np.sqrt(G*DH*np.cos(theta));
+    Fr = math.sqrt(rhog/(rhol-rhog))*jg/math.sqrt(G*DH*math.cos(theta));
     
     # numero de Reynolds Retp
     Retp = jt*rhol*w_rho*DH/MUL;
@@ -120,7 +120,7 @@ def DCdUd_swananda(alpha, rhol, rhog, ul, ug, theta, DH, AREA, EPS, G, MUL, MUG,
     x = (jg*rhog)/(jg*rhog+jl*rhol);
     
     # número de Laplace
-    La = np.sqrt(sigma/(G*w_rho*(rhol-rhog)))/DH;
+    La = math.sqrt(sigma/(G*w_rho*(rhol-rhog)))/DH;
     
     # cálculo do fator de atrito de fanning - Colebrook (1939)
     df = 1;
@@ -137,7 +137,7 @@ def DCdUd_swananda(alpha, rhol, rhog, ul, ug, theta, DH, AREA, EPS, G, MUL, MUG,
     
     # C2
     if MUL/0.001 > 10:
-        C2=(0.434/(np.log10(MUL/0.001)))**0.15
+        C2=(0.434/(math.log10(MUL/0.001)))**0.15
     else:
         C2=1;
     
@@ -148,16 +148,16 @@ def DCdUd_swananda(alpha, rhol, rhog, ul, ug, theta, DH, AREA, EPS, G, MUL, MUG,
         C3=1
     
     # C4
-    if (Fr <= 0.1) and (theta < 0) and (theta >= -50*np.pi/180):
+    if (Fr <= 0.1) and (theta < 0) and (theta >= -50*math.pi/180):
         C4=-1
     else:    
         C4=1
     
     # coeficient C01 para o parametro de distribuição C0
-    if (Fr <= 0.1) and (theta < 0) and (theta > -50*np.pi/180):
+    if (Fr <= 0.1) and (theta < 0) and (theta > -50*math.pi/180):
         C01 = 0
     else:   
-        C01 = (C1-C1*np.sqrt(rhog/rhol))*(((2.6-beta)**0.15)-np.sqrt(ftp))*((1-x)**1.5)
+        C01 = (C1-C1*math.sqrt(rhog/rhol))*(((2.6-beta)**0.15)-math.sqrt(ftp))*((1-x)**1.5)
     
     # derivadas das quantidades de interesse
     #
@@ -219,7 +219,7 @@ def DCdUd_swananda(alpha, rhol, rhog, ul, ug, theta, DH, AREA, EPS, G, MUL, MUG,
     dftpdRetp = -0.2009600000e11 * t5 * t4 / (0.1244640591e10 * t5 * Retp * EPS + 0.1004800000e11 * t5 * DH + 0.5784093754e10 * DH) * DH / Retp;
     
     # derivadas de C01
-    if (Fr <= 0.1) and (theta < 0) and (theta > -50*np.pi/180):
+    if (Fr <= 0.1) and (theta < 0) and (theta > -50*math.pi/180):
         dC01da = 0;
         dC01drhog = 0;
         dC01drhol = 0;
@@ -227,7 +227,7 @@ def DCdUd_swananda(alpha, rhol, rhog, ul, ug, theta, DH, AREA, EPS, G, MUL, MUG,
         dC01dug = 0;
     else:   
         # em relação a alpha
-        t3 = np.sqrt(rhog / rhol);
+        t3 = math.sqrt(rhog / rhol);
         t5 = -t3 * C1 + C1;
         t6 = (alpha * ug);
         t9 = t6 + (1 - alpha) * ul;
@@ -237,7 +237,7 @@ def DCdUd_swananda(alpha, rhol, rhog, ul, ug, theta, DH, AREA, EPS, G, MUL, MUG,
         t15 = t9 ** 2;
         t23 = Retp;
         t26 = ftp;
-        t27 = np.sqrt(t26);
+        t27 = math.sqrt(t26);
         t30 = dRetpda;
         t35 = x;
         t36 = 1 - t35;
@@ -249,12 +249,12 @@ def DCdUd_swananda(alpha, rhol, rhog, ul, ug, theta, DH, AREA, EPS, G, MUL, MUG,
         
         # em relação a rhog
         t1 = 0.1e1 / rhol;
-        t3 = np.sqrt(t1 * rhog);
+        t3 = math.sqrt(t1 * rhog);
         t6 = (alpha * ug);
         t13 = (0.26e1 - (1 / (t6 + (1 - alpha) * ul) * t6)) ** 0.15e0;
         t14 = Retp;
         t17 = ftp;
-        t18 = np.sqrt(t17);
+        t18 = math.sqrt(t17);
         t19 = t13 - t18;
         t21 = x;
         t22 = 1 - t21;
@@ -264,13 +264,13 @@ def DCdUd_swananda(alpha, rhol, rhog, ul, ug, theta, DH, AREA, EPS, G, MUL, MUG,
         dC01drhog = -t23 * t19 * t1 / t3 * C1 / 0.2e1 - 0.15e1 * t31 * t30 * t19 * (-t3 * C1+C1);
         
         # em relação a rhol  
-        t3 = np.sqrt(rhog / rhol);
+        t3 = math.sqrt(rhog / rhol);
         t7 = rhol ** 2;
         t9 = (alpha * ug);
         t16 = (0.26e1 - (1 / (t9 + (1 - alpha) * ul) * t9)) ** 0.15e0;
         t17 = Retp;
         t20 = ftp;
-        t21 = np.sqrt(t20);
+        t21 = math.sqrt(t20);
         t22 = t16 - t21;
         t24 = x;
         t25 = 1 - t24;
@@ -282,7 +282,7 @@ def DCdUd_swananda(alpha, rhol, rhog, ul, ug, theta, DH, AREA, EPS, G, MUL, MUG,
         dC01drhol = t26 * t22 / t7 * rhog / t3 * C1 / 0.2e1 - t26 * t34 * dftpdRetp / t21 * t31 / 0.2e1 - 0.15e1 * t41 * t40 * t22 * t31;
         
         # em relação a ul
-        t3 = np.sqrt(rhog / rhol);
+        t3 = math.sqrt(rhog / rhol);
         t5 = -t3 * C1 + C1;
         t6 = (alpha * ug);
         t7 = 1 - alpha;
@@ -292,7 +292,7 @@ def DCdUd_swananda(alpha, rhol, rhog, ul, ug, theta, DH, AREA, EPS, G, MUL, MUG,
         t15 = t9 ** 2;
         t21 = Retp;
         t24 = ftp;
-        t25 = np.sqrt(t24);
+        t25 = math.sqrt(t24);
         t28 = dRetpdul;
         t33 = x;
         t34 = 1 - t33;
@@ -303,7 +303,7 @@ def DCdUd_swananda(alpha, rhol, rhog, ul, ug, theta, DH, AREA, EPS, G, MUL, MUG,
         dC01dul = t35 * (0.15e0 * t7 / t15 * ug * alpha * t13 - t28 * dftpdRetp / t25 / 0.2e1) * t5 - 0.15e1 * t41 * t40 * (t37 - t25) * t5;
         
         # em relação a ug
-        t3 = np.sqrt(rhog / rhol);
+        t3 = math.sqrt(rhog / rhol);
         t5 = -t3 * C1 + C1;
         t6 = (alpha * ug);
         t9 = t6 + (1 - alpha) * ul;
@@ -314,7 +314,7 @@ def DCdUd_swananda(alpha, rhol, rhog, ul, ug, theta, DH, AREA, EPS, G, MUL, MUG,
         t17 = t9 ** 2;
         t23 = Retp;
         t26 = ftp;
-        t27 = np.sqrt(t26);
+        t27 = math.sqrt(t26);
         t30 = dRetpdug;
         t35 = x;
         t36 = 1 - t35;
@@ -333,13 +333,13 @@ def DCdUd_swananda(alpha, rhol, rhog, ul, ug, theta, DH, AREA, EPS, G, MUL, MUG,
     t7 = t6 ** 2;
     t10 = (0.1e1 + t7 / 0.1000000e7) ** 2;
     t13 = dRetpda;
-    t17 = np.cos(theta);
+    t17 = math.cos(theta);
     t22 = 0.1e1 / (0.1e1 + t17) * (t17 * t4 + 0.1e1);
-    t23 = np.sqrt(t22);
+    t23 = math.sqrt(t22);
     t25 = t23 ** (1 - alpha);
     t26 = t25 ** (0.1e1 / 0.5e1);
     t27 = t26 ** 2;
-    t28 = np.log(t22);
+    t28 = math.log(t22);
     t31 = dC01da;
     t35 = 0.1e1 + 0.1000000e7 / t7;
     t38 = C01;
@@ -353,9 +353,9 @@ def DCdUd_swananda(alpha, rhol, rhog, ul, ug, theta, DH, AREA, EPS, G, MUL, MUG,
     t4 = Retp;
     t5 = t4 ** 2;
     t11 = rhog ** 2;
-    t13 = np.cos(theta);
+    t13 = math.cos(theta);
     t15 = t13 * t2 * t11 + 0.1e1;
-    t19 = np.sqrt(0.1e1 / (0.1e1 + t13) * t15);
+    t19 = math.sqrt(0.1e1 / (0.1e1 + t13) * t15);
     t20 = 1 - alpha;
     t21 = t19 ** t20;
     t22 = t21 ** (0.1e1 / 0.5e1);
@@ -373,9 +373,9 @@ def DCdUd_swananda(alpha, rhol, rhog, ul, ug, theta, DH, AREA, EPS, G, MUL, MUG,
     t14 = 0.1e1 / t2 * t1;
     t16 = t9 ** 2;
     t19 = dRetpdrhol;
-    t23 = np.cos(theta);
+    t23 = math.cos(theta);
     t25 = t23 * t14 + 0.1e1;
-    t29 = np.sqrt(0.1e1 / (0.1e1 + t23) * t25);
+    t29 = math.sqrt(0.1e1 / (0.1e1 + t23) * t25);
     t30 = 1 - alpha;
     t31 = t29 ** t30;
     t32 = t31 ** (0.1e1 / 0.5e1);
@@ -396,8 +396,8 @@ def DCdUd_swananda(alpha, rhol, rhog, ul, ug, theta, DH, AREA, EPS, G, MUL, MUG,
     t13 = dRetpdul;
     t17 = dC01dul;
     t20 = 0.1e1 + 0.1e7 / t7;
-    t23 = np.cos(theta);
-    t29 = np.sqrt(0.1e1 / (0.1e1 + t23) * (t23 * t4 + 0.1e1));
+    t23 = math.cos(theta);
+    t29 = math.sqrt(0.1e1 / (0.1e1 + t23) * (t23 * t4 + 0.1e1));
     t31 = t29 ** (1 - alpha);
     t32 = t31 ** (0.1e1 / 0.5e1);
     t33 = t32 ** 2;
@@ -415,8 +415,8 @@ def DCdUd_swananda(alpha, rhol, rhog, ul, ug, theta, DH, AREA, EPS, G, MUL, MUG,
     t13 = dRetpdug;
     t17 = dC01dug;
     t20 = 0.1e1 + 0.1e7 / t7;
-    t23 = np.cos(theta);
-    t29 = np.sqrt(0.1e1 / (0.1e1 + t23) * (t23 * t4 + 0.1e1));
+    t23 = math.cos(theta);
+    t29 = math.sqrt(0.1e1 / (0.1e1 + t23) * (t23 * t4 + 0.1e1));
     t31 = t29 ** (1 - alpha);
     t32 = t31 ** (0.1e1 / 0.5e1);
     t33 = t32 ** 2;
@@ -430,7 +430,7 @@ def DCdUd_swananda(alpha, rhol, rhog, ul, ug, theta, DH, AREA, EPS, G, MUL, MUG,
         t2 = sigma / w_rho;
         t3 = rhol - rhog;
         t5 = 0.1e1 / G;
-        t8 = np.sqrt(t5 / t3 * t2);
+        t8 = math.sqrt(t5 / t3 * t2);
         t9 = 0.1e1 / DH;
         t11 = (t9 * t8) ** (-0.1e0);
         t15 = t3 ** 2;
@@ -440,7 +440,7 @@ def DCdUd_swananda(alpha, rhol, rhog, ul, ug, theta, DH, AREA, EPS, G, MUL, MUG,
         t2 = sigma / w_rho;
         t3 = rhol - rhog;
         t5 = 0.1e1 / G;
-        t8 = np.sqrt(t5 / t3 * t2);
+        t8 = math.sqrt(t5 / t3 * t2);
         t9 = 0.1e1 / DH;
         t11 = (t9 * t8) ** (-0.1e0);
         t15 = t3 ** 2;
@@ -453,31 +453,31 @@ def DCdUd_swananda(alpha, rhol, rhog, ul, ug, theta, DH, AREA, EPS, G, MUL, MUG,
     #
     # em relação a alpha
     #
-    t1 = np.sin(theta);
-    t3 = np.cos(theta);
+    t1 = math.sin(theta);
+    t3 = math.cos(theta);
     t11 = np.sqrt((rhol - rhog) * DH * G / rhol);
     t14 = (1 - alpha) ** (-0.5e0)
     t16 = C3
     dUdda = -0.5e0 * C4 * t16 * C2 * t14 * t11 * (0.35e0 * t1 + 0.45e0 * t3);
     
     # em relação a rhog
-    t1 = np.sin(theta)
-    t3 = np.cos(theta)
+    t1 = math.sin(theta)
+    t3 = math.cos(theta)
     t5 = 0.35e0 * t1 + 0.45e0 * t3;
     t8 = 0.1e1 / rhol;
-    t11 = np.sqrt(t8 * G * (rhol - rhog) * DH);
+    t11 = math.sqrt(t8 * G * (rhol - rhog) * DH);
     t15 = (1 - alpha) ** 0.5e0;
     t18 = C3;
     t27 = dC3drhog;
     dUddrhog = -t8 * G * DH * C4 * t18 * C2 * t15 / t11 * t5 / 0.2e1 + C4 * t27 * C2 * t15 * t11 * t5;
     
     # em relação a rhol
-    t1 = np.sin(theta);
-    t3 = np.cos(theta);
+    t1 = math.sin(theta);
+    t3 = math.cos(theta);
     t5 = 0.35e0 * t1 + 0.45e0 * t3;
     t7 = (rhol - rhog) * DH;
     t8 = 0.1e1 / rhol;
-    t11 = np.sqrt(t8 * G * t7);
+    t11 = math.sqrt(t8 * G * t7);
     t15 = (1 - alpha) ** 0.5e0;
     t17 = C3;
     t21 = rhol ** 2;

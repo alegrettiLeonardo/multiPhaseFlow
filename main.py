@@ -239,7 +239,7 @@ AREA = math.pi * (D**2)/4.0
 sigma = 7.28e-2
 G = 9.81
 jl = 0.06
-jg = 0.001
+jg = 0.01
 
 # Parâmetro da catenária
 CA = catenary.catenary_constant(X, Z, tol)
