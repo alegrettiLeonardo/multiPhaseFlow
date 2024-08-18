@@ -95,7 +95,7 @@ def vetor_h_ndim_simp(N, vns, vnp, nrhogv, nrholv, alphav, nugv, nulv, mul, mug,
 N = 101                         # número de pontos da malha
 X = 6.435                       # comprimento do riser
 Z = 9.886                       # altura do tubo
-Lp = 10.0                       # comprimento do oleoduto
+Lp = 5.0                       # comprimento do oleoduto
 beta = 5.0                      # ângulo inicial em graus
 Cg = 343.0                      # velocidade do som no gás
 Cl = 1498.0                     # velocidade do som no líquido
@@ -114,7 +114,7 @@ tola = tol * 100
 AREA = np.pi * (D**2)/4.0
 sigma = 7.28e-2
 G = 9.81
-jl = 6.0e-2
+jl = 2.0e-2
 jg = 1.0e-2
 
 

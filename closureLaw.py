@@ -898,6 +898,7 @@ def DRelEquiLocal_pipe_comp(alpha, rhol, rhog, ul, ug, theta, D, AREA, EPS, G, M
     t31 = gammai;
     t34 = 1 / (1 - alpha);
     #t38 = abs(1, t28);
+    t38 = 1.0 
     if t28 >= 0:
         t38 = 1.0;
     elif t28 < 0:

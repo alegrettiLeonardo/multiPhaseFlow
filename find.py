@@ -33,9 +33,9 @@ def pressure_fun_uj(u1, u2, Cg, Cl, rho_l0, P_l0):
         P = P2
     else:
         # No positive solution found
-        P = None
+        P = P1
 
-    return P
+    return float(P)
 
 
 def alpha_fun_uj(u1, u2, Cg, Cl, rho_l0, P_l0, tol):
@@ -63,7 +63,7 @@ def alpha_fun_uj(u1, u2, Cg, Cl, rho_l0, P_l0, tol):
             alpha = alpha1
         elif 0 <= alpha2 <= 1:
             alpha = alpha2
-    return alpha
+    return float(alpha)
 
 def find_ul_ug_from_uj(u1, u2, u3, rhol, rhog, ALPHA, BETA, D, AREA, EPS, G, MUL, MUG, w_u, w_rho, tol, tola):
     """
@@ -103,7 +103,7 @@ def find_ul_ug_from_uj(u1, u2, u3, rhol, rhog, ALPHA, BETA, D, AREA, EPS, G, MUL
         ul = find_ul_from_uj(u1, u2, u3, rhol, rhog, ALPHA, BETA, D, AREA, EPS, G, MUL, MUG, w_u, w_rho, tol)
         ug = u3 / u2 - (u1 / u2) * ul
 
-    return ul, ug
+    return float(ul), float(ug)
 
 def find_one_ug_from_uj_dfr(ugmin, ugmax, u1, u2, u3, rhol, rhog, ALPHA, theta, D, AREA, EPS, G, MUL, MUG, sigma, w_u, w_rho, tol, maxit):
     """
@@ -134,10 +134,10 @@ def find_one_ug_from_uj_dfr(ugmin, ugmax, u1, u2, u3, rhol, rhog, ALPHA, theta, 
     """
     # Check if there is a root in the interval [ugmin,ugmax]
     ul = u3/u1 - (u2/u1) * ugmin
-    fv1 = closureLaw.drift_flux_swananda(ul, ugmin, rhol, rhog, ALPHA, theta, D, AREA, EPS, G, MUL, MUG, sigma, w_u, w_rho, tol)
+    fv1 = closureLaw.drift_flux_swananda_ndim(ul, ugmin, rhol, rhog, ALPHA, theta, D, AREA, EPS, G, MUL, MUG, sigma, w_u, w_rho, tol)
 
     ul = u3/u1 - (u2/u1) * ugmax
-    fv2 = closureLaw.drift_flux_swananda(ul, ugmax, rhol, rhog, ALPHA, theta, D, AREA, EPS, G, MUL, MUG, sigma, w_u, w_rho, tol)
+    fv2 = closureLaw.drift_flux_swananda_ndim(ul, ugmax, rhol, rhog, ALPHA, theta, D, AREA, EPS, G, MUL, MUG, sigma, w_u, w_rho, tol)
 
     if fv1 * fv2 > 0:
         print("No root in the interval [ugmin, ugmax]")
@@ -154,7 +154,7 @@ def find_one_ug_from_uj_dfr(ugmin, ugmax, u1, u2, u3, rhol, rhog, ALPHA, theta, 
             du = ugmin - ugmax
 
         ul = u3/u1 - (u2/u1) * ug
-        fv = closureLaw.drift_flux_swananda(ul, ug, rhol, rhog, ALPHA, theta, D, AREA, EPS, G, MUL, MUG, sigma, w_u, w_rho, tol)
+        fv = closureLaw.drift_flux_swananda_ndim(ul, ug, rhol, rhog, ALPHA, theta, D, AREA, EPS, G, MUL, MUG, sigma, w_u, w_rho, tol)
         count = 0
 
         while abs(fv) > tol and abs(du) > tol / 10000 and count < maxit:
@@ -162,7 +162,7 @@ def find_one_ug_from_uj_dfr(ugmin, ugmax, u1, u2, u3, rhol, rhog, ALPHA, theta, 
             du /= 2.0
             ugmid = ug + du
             ul = u3/u1 - (u2/u1) * ugmid
-            fv = closureLaw.drift_flux_swananda(ul, ugmid, rhol, rhog, ALPHA, theta, D, AREA, EPS, G, MUL, MUG, sigma, w_u, w_rho, tol)
+            fv = closureLaw.drift_flux_swananda_ndim(ul, ugmid, rhol, rhog, ALPHA, theta, D, AREA, EPS, G, MUL, MUG, sigma, w_u, w_rho, tol)
 
             if fv <= 0:
                 ug = ugmid
@@ -223,14 +223,14 @@ def find_all_ug_from_uj_dfr(u1, u2, u3, rhol, rhog, ALPHA, theta, D, AREA, EPS, 
        if i == 2:
            ug1 = dug * (i - 2)
            ul1 = u3 / u1 - (u2 / u1) * ug1
-           fv1 = closureLaw.drift_flux_swananda(ul1, ug1, rhol, rhog, ALPHA, theta, D, AREA, EPS, G, MUL, MUG, sigma, w_u, w_rho, tol)
+           fv1 = closureLaw.drift_flux_swananda_ndim(ul1, ug1, rhol, rhog, ALPHA, theta, D, AREA, EPS, G, MUL, MUG, sigma, w_u, w_rho, tol)
            ug2 = dug * (i - 1)
            ul2 = u3 / u1 - (u2 / u1) * ug2
-           fv2 = closureLaw.drift_flux_swananda(ul2, ug2, rhol, rhog, ALPHA, theta, D, AREA, EPS, G, MUL, MUG, sigma, w_u, w_rho, tol)
+           fv2 = closureLaw.drift_flux_swananda_ndim(ul2, ug2, rhol, rhog, ALPHA, theta, D, AREA, EPS, G, MUL, MUG, sigma, w_u, w_rho, tol)
        else:
            ug2 = dug * (i - 1)
            ul2 = u3 / u1 - (u2 / u1) * ug2
-           fv2 = closureLaw.drift_flux_swananda(ul2, ug2, rhol, rhog, ALPHA, theta, D, AREA, EPS, G, MUL, MUG, sigma, w_u, w_rho, tol)
+           fv2 = closureLaw.drift_flux_swananda_ndim(ul2, ug2, rhol, rhog, ALPHA, theta, D, AREA, EPS, G, MUL, MUG, sigma, w_u, w_rho, tol)
 
        if fv1 * fv2 < 0:
            counti += 1
@@ -261,7 +261,7 @@ def find_all_ug_from_uj_dfr(u1, u2, u3, rhol, rhog, ALPHA, theta, D, AREA, EPS, 
    if count == 0:
        ugv.append(0)
 
-   return ugv, count
+   return float(ugv), count
 
 # A função auxiliar drift_flux_swananda e find_one_ug_from_uj_dfr precisam ser implementadas no seu código Python.
 
@@ -317,14 +317,14 @@ def find_all_ug_from_uj_dfr(u1, u2, u3, rhol, rhog, ALPHA, theta, D, AREA, EPS, 
        if i == 2:
            ug1 = dug * (i - 2)
            ul1 = u3 / u1 - (u2 / u1) * ug1
-           fv1 = closureLaw.drift_flux_swananda(ul1, ug1, rhol, rhog, ALPHA, theta, D, AREA, EPS, G, MUL, MUG, sigma, w_u, w_rho, tol)
+           fv1 = closureLaw.drift_flux_swananda_ndim(ul1, ug1, rhol, rhog, ALPHA, theta, D, AREA, EPS, G, MUL, MUG, sigma, w_u, w_rho, tol)
            ug2 = dug * (i - 1)
            ul2 = u3 / u1 - (u2 / u1) * ug2
-           fv2 = closureLaw.drift_flux_swananda(ul2, ug2, rhol, rhog, ALPHA, theta, D, AREA, EPS, G, MUL, MUG, sigma, w_u, w_rho, tol)
+           fv2 = closureLaw.drift_flux_swananda_ndim(ul2, ug2, rhol, rhog, ALPHA, theta, D, AREA, EPS, G, MUL, MUG, sigma, w_u, w_rho, tol)
        else:
            ug2 = dug * (i - 1)
            ul2 = u3 / u1 - (u2 / u1) * ug2
-           fv2 = closureLaw.drift_flux_swananda(ul2, ug2, rhol, rhog, ALPHA, theta, D, AREA, EPS, G, MUL, MUG, sigma, w_u, w_rho, tol)
+           fv2 = closureLaw.drift_flux_swananda_ndim(ul2, ug2, rhol, rhog, ALPHA, theta, D, AREA, EPS, G, MUL, MUG, sigma, w_u, w_rho, tol)
 
        if fv1 * fv2 < 0:
            counti += 1
@@ -355,7 +355,7 @@ def find_all_ug_from_uj_dfr(u1, u2, u3, rhol, rhog, ALPHA, theta, D, AREA, EPS, 
    if count == 0:
        ugv.append(0)
 
-   return ugv, count
+   return float(ugv), count
 
 def find_one_ul_from_uj_dfr(ulmin, ulmax, u1, u2, u3, rhol, rhog, ALPHA, theta, D, AREA, EPS, G, MUL, MUG, sigma, w_u, w_rho, tol, maxit):
    """
@@ -386,10 +386,10 @@ def find_one_ul_from_uj_dfr(ulmin, ulmax, u1, u2, u3, rhol, rhog, ALPHA, theta, 
    """
    # Verificar se há raiz no intervalo [ulmin, ulmax]
    ug = u3 / u2 - (u1 / u2) * ulmin
-   fv1 = closureLaw.drift_flux_swananda(ulmin, ug, rhol, rhog, ALPHA, theta, D, AREA, EPS, G, MUL, MUG, sigma, w_u, w_rho, tol)
+   fv1 = closureLaw.drift_flux_swananda_ndim(ulmin, ug, rhol, rhog, ALPHA, theta, D, AREA, EPS, G, MUL, MUG, sigma, w_u, w_rho, tol)
 
    ug = u3 / u2 - (u1 / u2) * ulmax
-   fv2 = closureLaw.drift_flux_swananda(ulmax, ug, rhol, rhog, ALPHA, theta, D, AREA, EPS, G, MUL, MUG, sigma, w_u, w_rho, tol)
+   fv2 = closureLaw.drift_flux_swananda_ndim(ulmax, ug, rhol, rhog, ALPHA, theta, D, AREA, EPS, G, MUL, MUG, sigma, w_u, w_rho, tol)
 
    if fv1 * fv2 > 0:
        print('Não há raiz no intervalo [ulmin, ulmax]')
@@ -409,7 +409,7 @@ def find_one_ul_from_uj_dfr(ulmin, ulmax, u1, u2, u3, rhol, rhog, ALPHA, theta, 
            du = ulmin - ulmax
 
        ug = u3 / u2 - (u1 / u2) * ul
-       fv = closureLaw.drift_flux_swananda(ul, ug, rhol, rhog, ALPHA, theta, D, AREA, EPS, G, MUL, MUG, sigma, w_u, w_rho, tol)
+       fv = closureLaw.drift_flux_swananda_ndim(ul, ug, rhol, rhog, ALPHA, theta, D, AREA, EPS, G, MUL, MUG, sigma, w_u, w_rho, tol)
 
        count = 0
 
@@ -418,7 +418,7 @@ def find_one_ul_from_uj_dfr(ulmin, ulmax, u1, u2, u3, rhol, rhog, ALPHA, theta, 
            du /= 2.0
            ulmid = ul + du
            ug = u3 / u2 - (u1 / u2) * ulmid
-           fv = closureLaw.drift_flux_swananda(ulmid, ug, rhol, rhog, ALPHA, theta, D, AREA, EPS, G, MUL, MUG, sigma, w_u, w_rho, tol)
+           fv = closureLaw.drift_flux_swananda_ndim(ulmid, ug, rhol, rhog, ALPHA, theta, D, AREA, EPS, G, MUL, MUG, sigma, w_u, w_rho, tol)
 
            if fv <= 0:
                ul = ulmid
@@ -484,14 +484,14 @@ def find_all_ul_from_uj_dfr(u1, u2, u3, rhol, rhog, ALPHA, theta, D, AREA, EPS, 
        if i == 2:
            ul1 = dul * (i - 2)
            ug1 = u3 / u2 - (u1 / u2) * ul1
-           fv1 = closureLaw.drift_flux_swananda(ul1, ug1, rhol, rhog, ALPHA, theta, D, AREA, EPS, G, MUL, MUG, sigma, w_u, w_rho, tol)
+           fv1 = closureLaw.drift_flux_swananda_ndim(ul1, ug1, rhol, rhog, ALPHA, theta, D, AREA, EPS, G, MUL, MUG, sigma, w_u, w_rho, tol)
            ul2 = dul * (i - 1)
            ug2 = u3 / u2 - (u1 / u2) * ul2
-           fv2 = closureLaw.drift_flux_swananda(ul2, ug2, rhol, rhog, ALPHA, theta, D, AREA, EPS, G, MUL, MUG, sigma, w_u, w_rho, tol)
+           fv2 = closureLaw.drift_flux_swananda_ndim(ul2, ug2, rhol, rhog, ALPHA, theta, D, AREA, EPS, G, MUL, MUG, sigma, w_u, w_rho, tol)
        else:
            ul2 = dul * (i - 1)
            ug2 = u3 / u2 - (u1 / u2) * ul2
-           fv2 = closureLaw.drift_flux_swananda(ul2, ug2, rhol, rhog, ALPHA, theta, D, AREA, EPS, G, MUL, MUG, sigma, w_u, w_rho, tol)
+           fv2 = closureLaw.drift_flux_swananda_ndim(ul2, ug2, rhol, rhog, ALPHA, theta, D, AREA, EPS, G, MUL, MUG, sigma, w_u, w_rho, tol)
 
        if fv1 * fv2 < 0:
            counti += 1
@@ -522,7 +522,7 @@ def find_all_ul_from_uj_dfr(u1, u2, u3, rhol, rhog, ALPHA, theta, D, AREA, EPS, 
    if count == 0:
        ulv.append(0)
 
-   return ulv, count
+   return float(ulv), count
 
 
 def find_ul_ug_from_uj_dfr(u1, u2, u3, rhol, rhog, ALPHA, theta, D, AREA, EPS, G, MUL, MUG, sigma, w_u, w_rho, tol, tola, maxit):
@@ -595,7 +595,7 @@ def find_ul_ug_from_uj_dfr(u1, u2, u3, rhol, rhog, ALPHA, theta, D, AREA, EPS, G
                 else:
                     print('Inversion not possible for u1, u2, and u3 =', u1, u2, u3)
 
-    return ul, ug
+    return float(ul), float(ug)
 
 def find_ug_from_uj(u1, u2, u3, rhol, rhog, ALPHA, BETA, D, AREA, EPS, G, MUL, MUG, w_u, w_rho, tol):
     """
@@ -657,7 +657,7 @@ def find_ug_from_uj(u1, u2, u3, rhol, rhog, ALPHA, BETA, D, AREA, EPS, G, MUL, M
         if fv <= 0:
             ug = ugmid
 
-    return ug
+    return float(ug)
 
 def find_ul_from_uj(u1, u2, u3, rhol, rhog, ALPHA, BETA, D, AREA, EPS, G, MUL, MUG, w_u, w_rho, tol):
     """
@@ -719,7 +719,7 @@ def find_ul_from_uj(u1, u2, u3, rhol, rhog, ALPHA, BETA, D, AREA, EPS, G, MUL, M
         if fv <= 0:
             ul = ulmid
 
-    return ul
+    return float(ul)
 
 
 def find_ul_ug_from_uj(u1, u2, u3, rhol, rhog, ALPHA, BETA, D, AREA, EPS, G, MUL, MUG, w_u, w_rho, tol, tola):
@@ -760,7 +760,7 @@ def find_ul_ug_from_uj(u1, u2, u3, rhol, rhog, ALPHA, BETA, D, AREA, EPS, G, MUL
         ul = find_ul_from_uj(u1, u2, u3, rhol, rhog, ALPHA, BETA, D, AREA, EPS, G, MUL, MUG, w_u, w_rho, tol)
         ug = u3 / u2 - (u1 / u2) * ul
 
-    return ul, ug
+    return float(ul), float(ug)
 
 
 def find_ulug_from_uj_genflw_simp(u1, u2, u3, rhol, rhog, ALPHA, theta, D, AREA, EPS, G, MUL, MUG, sigma, w_u, w_rho, tol, tola, maxit):
@@ -800,7 +800,7 @@ def find_ulug_from_uj_genflw_simp(u1, u2, u3, rhol, rhog, ALPHA, theta, D, AREA,
         index = 0
         ul, ug = find_ul_ug_from_uj(u1, u2, u3, rhol, rhog, ALPHA, -theta, D, AREA, EPS, G, MUL, MUG, w_u, w_rho, tol, tola)
 
-    return ul, ug, index
+    return float(ul), float(ug), index
 
 
 def find_primvar_from_cvar_simp(u1, u2, u3, theta, Cg, Cl, rho_l0, P_l0, D, AREA, EPS, G, MUL, MUG, sigma, w_u, w_rho, tol, tola, maxit):
@@ -819,4 +819,4 @@ def find_primvar_from_cvar_simp(u1, u2, u3, theta, Cg, Cl, rho_l0, P_l0, D, AREA
     # Velocities of gas and liquid
     ul, ug, index = find_ulug_from_uj_genflw_simp(u1, u2, u3, rhol, rhog, alpha, theta, D, AREA, EPS, G, MUL, MUG, sigma, w_u, w_rho, tol, tola, maxit)
 
-    return alpha, rhol, rhog, P, ul, ug, index
+    return float(alpha), float(rhol), float(rhog), float(P), float(ul), float(ug), index

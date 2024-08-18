@@ -117,12 +117,20 @@ def EstadoEstacionario_ndim_simp(N, mul, mug, Ps, Lp, Lr, CA, beta, DH, AREA, EP
     tspan = np.linspace((Lp + Lr) / Lr, 0, N)
     
     # Defina as opções de controle do integrador solve_ivp
+    # options = {
+    #     'method': 'LSODA', # Método de integração (pode ser 'BDF', 'DOP853', 'LSODA', 'Radau')
+    #     'rtol': 1e4 * tol,
+    #     'atol': tol,
+    #     'max_step': ds,
+    #     'first_step': ds / 1000.0,
+    # }
     options = {
-        'method': 'LSODA', # Método de integração (pode ser 'BDF', 'DOP853', 'LSODA', 'Radau')
-        'rtol': 1e4 * tol,
-        'atol': tol,
-        'max_step': ds,
-        'first_step': ds / 1000.0,
+        'method': 'LSODA',  # Método de integração para sistemas rígidos (pode ser 'Radau', 'LSODA')
+        'rtol': 1e-6,  # Tolerância relativa ajustada
+        'atol': tol,  # Tolerância absoluta definida
+        'max_step': ds / 10,  # Limitar o passo máximo
+        'first_step': ds / 100.0,  # Ajuste inicial do passo
+        'jac': None  # Jacobiano pode ser fornecido aqui se disponível
     }
 
     # Integração da pressão do topo do riser até o início do oleoduto
