@@ -48,67 +48,95 @@ def fun_dpds(s, p, mul, mug, Lp, Lr, CA, beta, DH, AREA, EPS, G, Cl, Cg, rho_l0,
     """
    
     # Números adimensionais
-    PIP = float(w_p / (w_rho * (w_u**2)))
-    PIG = float(G * Lr / (w_u**2))
-    PIF = float(Lr / DH)
+    PIP = w_p / (w_rho * (w_u**2))
+    PIG = G * Lr / (w_u**2)
+    PIF = Lr / DH
    
     # Densidades adimensionais do líquido e gás
-    p = float(p)
-    nrhog = float(p / (Cg**2))
-    nrhol = float(rho_l0 + (p - P_l0) / (Cl**2))
+    #p = float(p)
+    nrhog = p / (Cg**2)
+    nrhol = rho_l0 + (p - P_l0) / (Cl**2)
    
    
     # Velocidades superficiais adimensionais
-    njl = float(mul / nrhol)
-    njg = float(mug / nrhog)
+    njl = mul / nrhol
+    njg = mug / nrhog
    
     # Fração de vazio
-    theta = float(catenary.fun_or_geo(s * Lr, Lp, beta, CA))
+    theta = catenary.fun_or_geo(s * Lr, Lp, beta, CA)
    
     if theta <= 0:
         alpha = voidFraction.FracaoVazio_comp(njl, njg, nrhog, nrhol, -theta, DH, AREA, EPS, G, MUL, MUG, w_u, w_rho, tol)
     else:
         alpha, Cd, Ud = voidFraction.FracaoVazio_swananda_ndim(njl, njg, nrhog, nrhol, theta, DH, AREA, EPS, G, MUL, MUG, sigma, w_u, w_rho, tol)
-    alpha = float(alpha)
     # Velocidades adimensionais
-    nug = float(njg / alpha)
-    nul = float(njl / (1 - alpha))
+    nug = njg / alpha
+    nul = njl / (1 - alpha)
    
     # Derivadas da lei de fechamento
     dfda, dfdrhog, dfdrhol, dfdug, dfdul = closureLaw.Dlei_fechamento_or_ndim_simp(alpha, nrhol, nrhog, nul, nug, theta, DH, AREA, EPS, G, MUL, MUG, sigma, w_u, w_rho, tol)
-                                                                                    
+                                                                                   
     # Elementos Aij, i,j = 1,2
-    A11 = float((1 - alpha) * nrhol + nrhol * nul * dfdul / dfda)
-    A12 = float(nrhol * nul * dfdug / dfda)
-    A21 = float(-nrhog * nug * dfdug / dfda)
-    A22 = float(alpha * nrhog - nrhog * nug * dfdug / dfda)
+    A11 = (1 - alpha) * nrhol + nrhol * nul * dfdul / dfda
+    A12 = nrhol * nul * dfdug / dfda
+    A21 = -nrhog * nug * dfdug / dfda
+    A22 = alpha * nrhog - nrhog * nug * dfdug / dfda
     
    
     # Elementos B1 e B2
-    B1 = float(-((1 - alpha) * nul / (Cl**2) + nrhol * nul * (dfdrhol / (Cl**2) + dfdrhog / (Cg**2)) / dfda))
-    B2 = float(-(alpha * nug / (Cg**2) - nrhog * nug * (dfdrhol / (Cl**2) + dfdrhog / (Cg**2)) / dfda))
+    B1 = -((1 - alpha) * nul / (Cl**2) + nrhol * nul * (dfdrhol / (Cl**2) + dfdrhog / (Cg**2)) / dfda)
+    B2 = -(alpha * nug / (Cg**2) - nrhog * nug * (dfdrhol / (Cl**2) + dfdrhog / (Cg**2)) / dfda)
    
     # Termo que multiplica dp/ds
-    auxa = float((B1 * A22 - B2 * A12) / (A22 * A11 - A21 * A12))
-    auxb = float((B2 * A11 - B1 * A21) / (A22 * A11 - A21 * A12))
+    auxa = (B1 * A22 - B2 * A12) / (A22 * A11 - A21 * A12)
+    auxb = (B2 * A11 - B1 * A21) / (A22 * A11 - A21 * A12)
    
-    auxc = float(mul * auxa + mug * auxb + PIP)
+    auxc = mul * auxa + mug * auxb + PIP
    
     # Termo gravitacional e de atrito
-    rhom = ((1 - alpha) * nrhol + alpha * nrhog)
-    auxa = float(-PIG * np.sin(theta) * rhom)
+    rhom = (1 - alpha) * nrhol + alpha * nrhog
+    auxa = -PIG * np.sin(theta) * rhom
    
-    jt = float(njl + njg)
-    dmu = float(MUG / MUL)
-    Rem = float((w_rho * w_u * DH / MUL) * rhom * abs(jt) / ((1 - alpha) + dmu * alpha))
+    jt = njl + njg
+    dmu = MUG / MUL
+    Rem = (w_rho * w_u * DH / MUL) * rhom * abs(jt) / ((1 - alpha) + dmu * alpha)
    
-    fm = float(voidFraction.ffan(EPS / DH, Rem))
+    fm = voidFraction.ffan(EPS / DH, Rem)
    
-    auxb = float(-PIF * rhom * fm * jt * abs(jt) / 2.0)
+    auxb = -PIF * rhom * fm * jt * abs(jt) / 2.0
    
-    dpds = float((auxa + auxb) / auxc)
-    print(f"s: {s}, theta: {theta}, p: {p}")
+    dpds = (auxa + auxb) / auxc
+    print(f"s: {s}, dp/ds: {dpds}, p: {p}")
     return dpds
+
+def jac(s, p, mul, mug, Lp, Lr, CA, beta, DH, AREA, EPS, G, Cl, Cg, rho_l0, P_l0, MUL, MUG, sigma, w_p, w_u, w_rho, tol):
+    # Número de variáveis de estado (no seu caso, é uma variável: p)
+    n = 1  # tamanho de p
+    
+    # Inicializar a matriz Jacobiana com zeros
+    J = np.zeros((n, n))
+    
+    # Perturbação para cálculo numérico das derivadas
+    h = 1e-8
+    
+    # Calcular fun_dpds no ponto atual
+    f0 = fun_dpds(s, p, mul, mug, Lp, Lr, CA, beta, DH, AREA, EPS, G, Cl, Cg, rho_l0, P_l0, MUL, MUG, sigma, w_p, w_u, w_rho, tol)
+    
+    # Calcular as derivadas parciais numericamente
+    for i in range(n):
+        # Criar uma cópia da variável de estado p
+        p_perturbado = p.copy()
+        
+        # Perturbar a i-ésima variável de estado
+        p_perturbado[i] += h
+        
+        # Calcular fun_dpds no ponto perturbado
+        f_perturbado = fun_dpds(s, p_perturbado, mul, mug, Lp, Lr, CA, beta, DH, AREA, EPS, G, Cl, Cg, rho_l0, P_l0, MUL, MUG, sigma, w_p, w_u, w_rho, tol)
+        
+        # Calcular a derivada parcial como diferença dividida
+        J[:, i] = (f_perturbado - f0) / h
+    
+    return J
 
 # Função para resolver o estado estacionário
 def EstadoEstacionario_ndim_simp(N, mul, mug, Ps, Lp, Lr, CA, beta, DH, AREA, EPS, G, Cl, Cg, rho_l0, P_l0, MUL, MUG, sigma, w_p, w_u, w_rho, tol):
@@ -116,23 +144,14 @@ def EstadoEstacionario_ndim_simp(N, mul, mug, Ps, Lp, Lr, CA, beta, DH, AREA, EP
     ds = ((Lp + Lr) / Lr) / (N - 1)
     tspan = np.linspace((Lp + Lr) / Lr, 0, N)
     
-    # Defina as opções de controle do integrador solve_ivp
-    # options = {
-    #     'method': 'LSODA', # Método de integração (pode ser 'BDF', 'DOP853', 'LSODA', 'Radau')
-    #     'rtol': 1e4 * tol,
-    #     'atol': tol,
-    #     'max_step': ds,
-    #     'first_step': ds / 1000.0,
-    # }
     options = {
-        'method': 'LSODA',  # Método de integração para sistemas rígidos (pode ser 'Radau', 'LSODA')
-        'rtol': 1e-6,  # Tolerância relativa ajustada
-        'atol': tol,  # Tolerância absoluta definida
-        'max_step': ds / 10,  # Limitar o passo máximo
-        'first_step': ds / 100.0,  # Ajuste inicial do passo
-        'jac': None  # Jacobiano pode ser fornecido aqui se disponível
+        'method': 'Radau',  # Método de integração para sistemas rígidos (pode ser 'Radau', 'LSODA')
+        'rtol': 1e-6,       # Tolerância relativa ajustada
+        'atol': tol,        # Tolerância absoluta definida
+        'max_step': ds / 10,        # Limitar o passo máximo
+        'first_step': ds / 100.0,   # Ajuste inicial do passo
+        'jac': lambda s, p: jac(s, p, mul, mug, Lp, Lr, CA, beta, DH, AREA, EPS, G, Cl, Cg, rho_l0, P_l0, MUL, MUG, sigma, w_p, w_u, w_rho, tol)
     }
-
     # Integração da pressão do topo do riser até o início do oleoduto
     sol = solve_ivp(lambda s, p: fun_dpds(s, p, mul, mug, Lp, Lr, CA, beta, DH, AREA, EPS, G, Cl, Cg, rho_l0, P_l0, MUL, MUG, sigma, w_p, w_u, w_rho, tol),
                     [tspan[0], tspan[-1]], [Ps], t_eval=tspan, **options)
